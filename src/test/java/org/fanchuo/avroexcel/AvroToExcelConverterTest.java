@@ -6,11 +6,12 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -44,10 +45,24 @@ class AvroToExcelConverterTest {
         File excelFile = TEST_OUTPUT_DIR.resolve("users.xlsx").toFile();
 
         AvroToExcelConverter converter = new AvroToExcelConverter();
-        converter.convert(avroFile, excelFile);
+        converter.convert(avroFile, excelFile, "Avro Data", 0, 0);
 
         assertTrue(excelFile.exists());
         assertTrue(excelFile.length() > 0);
+
+        List<String> dump = ExcelWorkbookDescriptor.dump(excelFile, "Avro Data");
+        System.out.println(dump);
+        StringWriter sw = new StringWriter();
+        try (
+                InputStream is = getClass().getResourceAsStream("/excel_awaited_dump.txt");
+                Reader r = new InputStreamReader(is)
+        ) {
+            IOUtils.copy(r, sw);
+        }
+        Assertions.assertLinesMatch(
+                Arrays.asList(sw.toString().split("\n")),
+                dump
+        );
     }
 
     private void createSampleAvroFile(File file) throws IOException {

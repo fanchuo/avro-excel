@@ -10,25 +10,24 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class WorkbookWriter implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkbookWriter.class);
 
     private final OutputStream outputStream;
     private final Workbook workbook = new XSSFWorkbook();
-    private final Sheet sheet = workbook.createSheet("Avro Data");
+    private final Sheet sheet;
     private final CellStyle defaultMergeStyle = this.workbook.createCellStyle();
     private final CellStyle defaultDateStyle = this.workbook.createCellStyle();
     private final CellStyle defaultDatetimeStyle = this.workbook.createCellStyle();
 
-    public WorkbookWriter(File excelFile) throws IOException {
-        this(new FileOutputStream(excelFile));
+    public WorkbookWriter(File excelFile, String sheetName) throws IOException {
+        this(new FileOutputStream(excelFile), sheetName);
     }
 
-    public WorkbookWriter(OutputStream outputStream) {
+    public WorkbookWriter(OutputStream outputStream, String sheetName) {
+        this.sheet = workbook.createSheet(sheetName);
         this.outputStream = outputStream;
         this.defaultMergeStyle.setVerticalAlignment(VerticalAlignment.TOP);
         this.defaultDateStyle.setVerticalAlignment(VerticalAlignment.TOP);
@@ -110,7 +109,8 @@ public class WorkbookWriter implements Closeable {
         int offset = col;
         List<Object> keys = new ArrayList<>();
         List<Object> values = new ArrayList<>();
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
+        SortedMap<?, ?> sorted = new TreeMap<>(map);
+        for (Map.Entry<?, ?> entry : sorted.entrySet()) {
             keys.add(entry.getKey());
             values.add(entry.getValue());
         }
@@ -176,6 +176,12 @@ public class WorkbookWriter implements Closeable {
         if (row+1 != maxDepth) {
             CellRangeAddress range = new CellRangeAddress(row, maxDepth-1, offset, offset);
             this.sheet.addMergedRegion(range);
+        }
+    }
+
+    public void finalize(int col, int width) {
+        for (int i=col; i<col+width; i++) {
+            this.sheet.autoSizeColumn(i, true);
         }
     }
 
