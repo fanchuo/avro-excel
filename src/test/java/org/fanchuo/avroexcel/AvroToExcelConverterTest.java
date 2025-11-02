@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,12 +51,16 @@ class AvroToExcelConverterTest {
     }
 
     private void createSampleAvroFile(File file) throws IOException {
+        GenericData genericData = AvroReader.makeGenericData();
         Schema schema = new Schema.Parser().parse(getClass().getResourceAsStream("/user.avsc"));
         Schema favoriteSchema = schema.getField("favorite").schema();
         Integer pointSchemaIdx = schema.getField("lst2").schema().getIndexNamed("array");
         Schema pointSchema = schema.getField("lst2").schema().getTypes().get(pointSchemaIdx).getElementType();
+        Integer weirdIdx = schema.getField("strange_stuff").schema().getIndexNamed("array");
+        Schema weird = schema.getField("strange_stuff").schema().getTypes().get(weirdIdx).getElementType();
+        Schema weird2 = weird.getField("strange_map").schema().getValueType();
 
-        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema);
+        DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema, genericData);
         try (DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter)) {
             dataFileWriter.create(schema, file);
 
@@ -73,6 +79,15 @@ class AvroToExcelConverterTest {
             mapExample.put("a", "b");
             mapExample.put("c", "d");
             user1.put("map_example", mapExample);
+            List<GenericRecord> strangeStuff = new ArrayList<>();
+            GenericRecord strangeStuff1 = new GenericData.Record(weird);
+            strangeStuff.add(strangeStuff1);
+            strangeStuff1.put("bool_val", Boolean.TRUE);
+            strangeStuff1.put("local_date", LocalDate.of(2025, 1, 1));
+            strangeStuff1.put("local_datetime", LocalDateTime.of(2025, 1, 25, 19, 45));
+            Map<?, ?> strangeMap1 = new HashMap<>();
+            strangeStuff1.put("strange_map", strangeMap1);
+            user1.put("strange_stuff", strangeStuff);
             dataFileWriter.append(user1);
 
             // User 2
@@ -92,6 +107,10 @@ class AvroToExcelConverterTest {
             point2.put("y", "hjklm");
             user2.put("lst2", Arrays.asList(point1, point2));
             user2.put("lst3", "DEF");
+            user2.put("matrix", Arrays.asList(
+                    Arrays.asList(1.0, 2.0),
+                    Arrays.asList(3.0, 4.0)
+            ));
             dataFileWriter.append(user2);
 
             // User 3

@@ -21,6 +21,8 @@ public class WorkbookWriter implements Closeable {
     private final Workbook workbook = new XSSFWorkbook();
     private final Sheet sheet = workbook.createSheet("Avro Data");
     private final CellStyle defaultMergeStyle = this.workbook.createCellStyle();
+    private final CellStyle defaultDateStyle = this.workbook.createCellStyle();
+    private final CellStyle defaultDatetimeStyle = this.workbook.createCellStyle();
 
     public WorkbookWriter(File excelFile) throws IOException {
         this(new FileOutputStream(excelFile));
@@ -29,6 +31,10 @@ public class WorkbookWriter implements Closeable {
     public WorkbookWriter(OutputStream outputStream) {
         this.outputStream = outputStream;
         this.defaultMergeStyle.setVerticalAlignment(VerticalAlignment.TOP);
+        this.defaultDateStyle.setVerticalAlignment(VerticalAlignment.TOP);
+        this.defaultDateStyle.setDataFormat((short) 14);
+        this.defaultDatetimeStyle.setVerticalAlignment(VerticalAlignment.TOP);
+        this.defaultDatetimeStyle.setDataFormat((short) 22);
     }
 
     private Row getRow(int row) {
@@ -153,19 +159,23 @@ public class WorkbookWriter implements Closeable {
         Cell c = getCell(row, offset);
         if (value instanceof Number) {
             c.setCellValue(((Number) value).doubleValue());
+            c.setCellStyle(this.defaultMergeStyle);
         } else if (value instanceof Boolean) {
             c.setCellValue((Boolean) value);
+            c.setCellStyle(this.defaultMergeStyle);
         } else if (value instanceof LocalDate) {
             c.setCellValue((LocalDate) value);
+            c.setCellStyle(this.defaultDateStyle);
         } else if (value instanceof LocalDateTime) {
             c.setCellValue((LocalDateTime) value);
+            c.setCellStyle(this.defaultDatetimeStyle);
         } else {
             c.setCellValue(String.valueOf(value));
+            c.setCellStyle(this.defaultMergeStyle);
         }
         if (row+1 != maxDepth) {
             CellRangeAddress range = new CellRangeAddress(row, maxDepth-1, offset, offset);
             this.sheet.addMergedRegion(range);
-            c.setCellStyle(this.defaultMergeStyle);
         }
     }
 

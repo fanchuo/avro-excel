@@ -68,6 +68,72 @@
           },
           "null"
         ]
+      },
+      {
+        "name": "matrix",
+        "type": [
+          {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": "double"
+            }
+          },
+          "null"
+        ]
+      },
+      {
+        "name": "strange_stuff",
+        "type": [
+          {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "name": "Weird",
+              "fields": [
+                {
+                  "name": "bool_val",
+                  "type": "boolean"
+                },
+                {
+                  "name": "local_date",
+                  "type": {
+                    "type": "int",
+                    "logicalType": "date"
+                  }
+                },
+                {
+                  "name": "local_datetime",
+                  "type": {
+                    "type": "long",
+                    "logicalType": "local-timestamp-millis"
+                  }
+                },
+                {
+                  "name": "strange_map",
+                  "type": {
+                    "type": "map",
+                    "values": {
+                      "type": "record",
+                      "name": "Weird2",
+                      "fields": [
+                        {
+                          "name": "a",
+                          "type": "string"
+                        },
+                        {
+                          "name": "b",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "null"
+        ]
       }
     ]
 }
