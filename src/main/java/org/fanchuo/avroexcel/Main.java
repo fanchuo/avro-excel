@@ -1,4 +1,4 @@
-package org.example;
+package org.fanchuo.avroexcel;
 
 import java.io.IOException;
 

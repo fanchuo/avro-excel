@@ -1,4 +1,4 @@
-package org.example;
+package org.fanchuo.avroexcel;
 
 import org.apache.avro.Schema;
 

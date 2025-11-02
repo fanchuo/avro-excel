@@ -1,4 +1,4 @@
-package org.example;
+package org.fanchuo.avroexcel;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.*;
@@ -44,14 +44,14 @@ public class WorkbookWriter implements Closeable {
         return c;
     }
 
-    public void writeHeaders(int col, int row, org.example.HeaderInfo headerInfo, int maxDepth) {
+    public void writeHeaders(int col, int row, HeaderInfo headerInfo, int maxDepth) {
         Cell c = getCell(row, col);
         c.setCellValue(headerInfo.text);
         int lastCol = col + headerInfo.colSpan - 1;
         int lastRow = row;
         if (headerInfo.subHeaders != null) {
             int offset = col;
-            for (org.example.HeaderInfo subHeader : headerInfo.subHeaders) {
+            for (HeaderInfo subHeader : headerInfo.subHeaders) {
                 writeHeaders(offset, row+(headerInfo.text==null?0:1), subHeader, maxDepth);
                 offset += subHeader.colSpan;
             }
@@ -65,11 +65,11 @@ public class WorkbookWriter implements Closeable {
         }
     }
 
-    public void writeRecord(GenericRecord record, org.example.HeaderInfo headerInfo, org.example.RecordGeometry recordGeometry, int col, int row, int maxDepth) {
+    public void writeRecord(GenericRecord record, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth) {
         LOGGER.info("record: {}", record);
         LOGGER.info("recordGeometry: {}", recordGeometry);
         int offset = col;
-        for (org.example.HeaderInfo subHeader : headerInfo.subHeaders) {
+        for (HeaderInfo subHeader : headerInfo.subHeaders) {
             if (record.hasField(subHeader.text)) {
                 writeObject(record.get(subHeader.text), subHeader, recordGeometry.subRecords.get(subHeader.text), offset, row, maxDepth);
             }
@@ -77,22 +77,22 @@ public class WorkbookWriter implements Closeable {
         }
     }
 
-    private void writeIterable(Iterable<?> lst, org.example.HeaderInfo headerInfo, org.example.RecordGeometry recordGeometry, int col, int row) {
+    private void writeIterable(Iterable<?> lst, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row) {
         int i=0;
         int offsetRow=row;
         for (Object o : lst) {
-            org.example.RecordGeometry subList = recordGeometry.subLists.get(i++);
+            RecordGeometry subList = recordGeometry.subLists.get(i++);
             int end = offsetRow + subList.rowSpan;
             writeObject(o, headerInfo, subList, col, offsetRow, end);
             offsetRow = end;
         }
     }
 
-    public void writeList(List<?> lst, org.example.HeaderInfo headerInfo, org.example.RecordGeometry recordGeometry, int col, int row, int maxDepth) {
+    public void writeList(List<?> lst, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth) {
         int offset = col;
-        for (org.example.HeaderInfo subHeader : headerInfo.subHeaders) {
+        for (HeaderInfo subHeader : headerInfo.subHeaders) {
             if ("*size".equals(subHeader.text)) {
-                writeObject(lst.size(), subHeader, org.example.RecordGeometry.ATOM, offset, row, maxDepth);
+                writeObject(lst.size(), subHeader, RecordGeometry.ATOM, offset, row, maxDepth);
             } else if ("*".equals(subHeader.text)) {
                 writeIterable(lst, subHeader, recordGeometry, offset, row);
             }
@@ -100,7 +100,7 @@ public class WorkbookWriter implements Closeable {
         }
     }
 
-    public void writeMap(Map<?, ?> map, org.example.HeaderInfo headerInfo, org.example.RecordGeometry recordGeometry, int col, int row, int maxDepth) {
+    public void writeMap(Map<?, ?> map, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth) {
         int offset = col;
         List<Object> keys = new ArrayList<>();
         List<Object> values = new ArrayList<>();
@@ -108,9 +108,9 @@ public class WorkbookWriter implements Closeable {
             keys.add(entry.getKey());
             values.add(entry.getValue());
         }
-        for (org.example.HeaderInfo subHeader : headerInfo.subHeaders) {
+        for (HeaderInfo subHeader : headerInfo.subHeaders) {
             if ("#size".equals(subHeader.text)) {
-                writeObject(map.size(), subHeader, org.example.RecordGeometry.ATOM, offset, row, maxDepth);
+                writeObject(map.size(), subHeader, RecordGeometry.ATOM, offset, row, maxDepth);
             } else if ("#k".equals(subHeader.text)) {
                 writeIterable(keys, subHeader, recordGeometry, offset, row);
             } else if ("#v".equals(subHeader.text)) {
@@ -120,7 +120,7 @@ public class WorkbookWriter implements Closeable {
         }
     }
 
-    public void writeObject(Object value, org.example.HeaderInfo headerInfo, org.example.RecordGeometry recordGeometry, int col, int row, int maxDepth) {
+    public void writeObject(Object value, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth) {
         if (value instanceof GenericRecord) {
             writeRecord((GenericRecord) value, headerInfo, recordGeometry, col, row, maxDepth);
             return;
@@ -145,7 +145,7 @@ public class WorkbookWriter implements Closeable {
         // case of a scalar value
         int offset = col;
         if (headerInfo.subHeaders != null) {
-            for (org.example.HeaderInfo subHeader : headerInfo.subHeaders) {
+            for (HeaderInfo subHeader : headerInfo.subHeaders) {
                 if (".value".equals(subHeader.text)) break;
                 offset += subHeader.colSpan;
             }

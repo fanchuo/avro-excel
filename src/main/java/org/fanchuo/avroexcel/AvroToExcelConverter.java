@@ -1,4 +1,4 @@
-package org.example;
+package org.fanchuo.avroexcel;
 
 import org.apache.avro.Schema;
 
@@ -9,14 +9,14 @@ public class AvroToExcelConverter {
     private int idx;
 
     public void convert(File avroFile, File excelFile) throws IOException {
-        try (org.example.AvroReader avroReader = new org.example.AvroReader(avroFile)) {
+        try (AvroReader avroReader = new AvroReader(avroFile)) {
             Schema schema = avroReader.getSchema();
-            org.example.HeaderInfo root = org.example.HeaderInfo.visitSchema(null, schema);
-            try (org.example.WorkbookWriter workbookWriter = new org.example.WorkbookWriter(excelFile)) {
+            HeaderInfo root = HeaderInfo.visitSchema(null, schema);
+            try (WorkbookWriter workbookWriter = new WorkbookWriter(excelFile)) {
                 workbookWriter.writeHeaders(0, 0, root, root.rowSpan);
                 this.idx = root.rowSpan;
                 avroReader.process(record -> {
-                    org.example.RecordGeometry recordGeometry = org.example.RecordGeometry.visitRecord(record);
+                    RecordGeometry recordGeometry = RecordGeometry.visitRecord(record);
                     workbookWriter.writeRecord(record, root, recordGeometry, 0, idx, idx+recordGeometry.rowSpan);
                     this.idx += recordGeometry.rowSpan;
                 });
