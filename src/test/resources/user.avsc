@@ -1,0 +1,73 @@
+{
+    "type": "record",
+    "name": "User",
+    "fields": [
+        {"name": "name", "type": "string"},
+        {
+          "name": "favorite",
+          "type": {
+            "type": "record",
+            "name": "Favorite",
+            "fields": [
+              {"name": "number",  "type": ["int", "null"]},
+              {"name": "color", "type": ["string", "null"]}
+            ]
+          }
+        },
+        {
+          "name": "creation_date",
+          "type": {
+            "type": "long",
+            "logicalType": "timestamp-millis"
+          }
+        },
+        {
+          "name": "liste_optionnelle",
+          "type": {
+            "type": "array",
+            "items": ["double", "null"]
+          }
+        },
+      {
+        "name": "lst2",
+        "type": [
+          {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "name": "Oui",
+              "fields": [
+                {"name": "x", "type": "string"},
+                {"name": "y", "type": "string"}
+              ]
+            }
+          },
+          "null"
+        ]
+      },
+      {
+        "name": "lst3",
+        "type": [
+          {
+            "type": "record",
+            "name": "Oui",
+            "fields": [
+              {"name": "x", "type": "string"},
+              {"name": "y", "type": "string"}
+            ]
+          },
+          "string"
+        ]
+      },
+      {
+        "name": "map_example",
+        "type": [
+          {
+            "type": "map",
+            "values": "string"
+          },
+          "null"
+        ]
+      }
+    ]
+}
