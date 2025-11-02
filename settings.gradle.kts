@@ -1,1 +1,1 @@
-rootProject.name = "excel-dataframe"
+rootProject.name = "avroexcel"

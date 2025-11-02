@@ -3,7 +3,7 @@ plugins {
     id("jacoco")
 }
 
-group = "org.example"
+group = "org.fanchuo.avroexcel"
 version = "1.0-SNAPSHOT"
 
 java {
