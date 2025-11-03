@@ -18,6 +18,7 @@ public class WorkbookWriter implements Closeable {
     private final OutputStream outputStream;
     private final Workbook workbook = new XSSFWorkbook();
     private final Sheet sheet;
+    private final CellStyle defaultHeaderStyle = this.workbook.createCellStyle();
     private final CellStyle defaultMergeStyle = this.workbook.createCellStyle();
     private final CellStyle defaultDateStyle = this.workbook.createCellStyle();
     private final CellStyle defaultDatetimeStyle = this.workbook.createCellStyle();
@@ -29,6 +30,13 @@ public class WorkbookWriter implements Closeable {
     public WorkbookWriter(OutputStream outputStream, String sheetName) {
         this.sheet = workbook.createSheet(sheetName);
         this.outputStream = outputStream;
+        this.defaultHeaderStyle.setVerticalAlignment(VerticalAlignment.TOP);
+        this.defaultHeaderStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+        this.defaultHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        this.defaultHeaderStyle.setBorderBottom(BorderStyle.THIN);
+        this.defaultHeaderStyle.setBorderLeft(BorderStyle.THIN);
+        this.defaultHeaderStyle.setBorderRight(BorderStyle.THIN);
+        this.defaultHeaderStyle.setBorderTop(BorderStyle.THIN);
         this.defaultMergeStyle.setVerticalAlignment(VerticalAlignment.TOP);
         this.defaultDateStyle.setVerticalAlignment(VerticalAlignment.TOP);
         this.defaultDateStyle.setDataFormat((short) 14);
@@ -66,8 +74,9 @@ public class WorkbookWriter implements Closeable {
         if (headerInfo.text != null && (col<lastCol || row<lastRow)) {
             CellRangeAddress range = new CellRangeAddress(row, lastRow, col, lastCol);
             sheet.addMergedRegion(range);
-            c.setCellStyle(this.defaultMergeStyle);
         }
+        c.setCellStyle(this.defaultHeaderStyle);
+        this.sheet.createFreezePane(col, maxDepth);
     }
 
     public void writeRecord(GenericRecord record, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth) {

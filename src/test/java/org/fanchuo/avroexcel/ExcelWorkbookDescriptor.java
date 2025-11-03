@@ -23,18 +23,14 @@ public class ExcelWorkbookDescriptor {
                 Workbook workbook = new XSSFWorkbook(is)
         ) {
             Sheet sheet = workbook.getSheet(sheetName);
-            int rowNum = 0;
             Iterator<Row> rowIt = sheet.rowIterator();
             while (rowIt.hasNext()) {
                 Row row = rowIt.next();
                 Iterator<Cell> cellIt = row.cellIterator();
-                int cellNum=0;
                 while (cellIt.hasNext()) {
                     Cell cell = cellIt.next();
-                    out.add(String.format("Cell: %d - %d = %s", rowNum, cellNum, cell));
-                    cellNum++;
+                    out.add(String.format("Cell: %s = %s", cell.getAddress(), cell));
                 }
-                rowNum++;
             }
             for (CellRangeAddress cellRangeAddress : sheet.getMergedRegions()) {
                 out.add(cellRangeAddress.formatAsString());

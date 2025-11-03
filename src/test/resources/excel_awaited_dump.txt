@@ -1,166 +1,166 @@
-Cell: 0 - 0 = name
-Cell: 0 - 1 = favorite
-Cell: 0 - 2 = creation_date
-Cell: 0 - 3 = liste_optionnelle
-Cell: 0 - 4 = lst2
-Cell: 0 - 5 = lst3
-Cell: 0 - 6 = map_example
-Cell: 0 - 7 = matrix
-Cell: 0 - 8 = strange_stuff
-Cell: 1 - 0 = number
-Cell: 1 - 1 = color
-Cell: 1 - 2 = *size
-Cell: 1 - 3 = *
-Cell: 1 - 4 = *size
-Cell: 1 - 5 = *
-Cell: 1 - 6 = x
-Cell: 1 - 7 = y
-Cell: 1 - 8 = .value
-Cell: 1 - 9 = #size
-Cell: 1 - 10 = #k
-Cell: 1 - 11 = #v
-Cell: 1 - 12 = *size
-Cell: 1 - 13 = *
-Cell: 1 - 14 = *size
-Cell: 1 - 15 = *
-Cell: 2 - 0 = x
-Cell: 2 - 1 = y
-Cell: 2 - 2 = *size
-Cell: 2 - 3 = *
-Cell: 2 - 4 = bool_val
-Cell: 2 - 5 = local_date
-Cell: 2 - 6 = local_datetime
-Cell: 2 - 7 = strange_map
-Cell: 3 - 0 = #size
-Cell: 3 - 1 = #k
-Cell: 3 - 2 = #v
-Cell: 4 - 0 = a
-Cell: 4 - 1 = b
-Cell: 5 - 0 = Alyssa
-Cell: 5 - 1 = 256.0
-Cell: 5 - 2 = 2025-01-01T00:00:00Z
-Cell: 5 - 3 = 0.0
-Cell: 5 - 4 = ABC
-Cell: 5 - 5 = 2.0
-Cell: 5 - 6 = a
-Cell: 5 - 7 = b
-Cell: 5 - 8 = 2.0
-Cell: 5 - 9 = TRUE
-Cell: 5 - 10 = 1/2/25
-Cell: 5 - 11 = 1/25/25 19:45
-Cell: 5 - 12 = 2.0
-Cell: 5 - 13 = COMP2
-Cell: 5 - 14 = Z
-Cell: 5 - 15 = Y
-Cell: 6 - 0 = c
-Cell: 6 - 1 = d
-Cell: 6 - 2 = comp
-Cell: 6 - 3 = z
-Cell: 6 - 4 = y
-Cell: 7 - 0 = FALSE
-Cell: 7 - 1 = 2/1/25
-Cell: 7 - 2 = 3/25/25 19:45
-Cell: 7 - 3 = 2.0
-Cell: 7 - 4 = comp
-Cell: 7 - 5 = 123
-Cell: 7 - 6 = 456
-Cell: 8 - 0 = qwerty
-Cell: 8 - 1 = 098
-Cell: 8 - 2 = 765
-Cell: 9 - 0 = Ben
-Cell: 9 - 1 = 7.0
-Cell: 9 - 2 = red
-Cell: 9 - 3 = 2025-01-02T00:00:00Z
-Cell: 9 - 4 = 1.0
-Cell: 9 - 5 = 123.4
-Cell: 9 - 6 = 2.0
-Cell: 9 - 7 = azerty
-Cell: 9 - 8 = uiop
-Cell: 9 - 9 = DEF
-Cell: 9 - 10 = 2.0
-Cell: 9 - 11 = 2.0
-Cell: 9 - 12 = 1.0
-Cell: 10 - 0 = qsdfg
-Cell: 10 - 1 = hjklm
-Cell: 10 - 2 = 2.0
-Cell: 11 - 0 = 2.0
-Cell: 11 - 1 = 3.0
-Cell: 12 - 0 = 4.0
-Cell: 13 - 0 = Charlie
-Cell: 13 - 1 = blue
-Cell: 13 - 2 = 2025-01-03T00:00:00Z
-Cell: 13 - 3 = 1.0
-Cell: 13 - 4 = 1.0
-Cell: 13 - 5 = xx
-Cell: 13 - 6 = yy
-Cell: 13 - 7 = GHI
-Cell: 13 - 8 = JKL
-A1:A5
-B2:B5
-C2:C5
-B1:C1
-D1:D5
-E2:E5
-F2:F5
-E1:F1
-G2:G5
-H3:H5
-I3:I5
-H2:I2
-G1:I1
-J2:J5
-K2:K5
-L2:L5
-J1:L1
-M2:M5
-N2:N5
-O2:O5
-M1:O1
-P2:P5
-Q3:Q5
-R3:R5
-Q2:R2
-P1:R1
-S2:S5
-T3:T5
-U3:U5
-V3:V5
-W4:W5
-X4:X5
-Y4:Z4
-W3:Z3
-T2:Z2
-S1:Z1
-A6:A9
-B6:B9
-C6:C9
-D6:D9
-E6:E9
-G6:I9
-L6:L9
-M6:M9
-P6:R9
-S6:S9
-T6:T7
-U6:U7
-V6:V7
-W6:W7
-T8:T9
+Cell: B3 = name
+Cell: C3 = favorite
+Cell: E3 = creation_date
+Cell: F3 = liste_optionnelle
+Cell: H3 = lst2
+Cell: K3 = lst3
+Cell: N3 = map_example
+Cell: Q3 = matrix
+Cell: T3 = strange_stuff
+Cell: C4 = number
+Cell: D4 = color
+Cell: F4 = *size
+Cell: G4 = *
+Cell: H4 = *size
+Cell: I4 = *
+Cell: K4 = x
+Cell: L4 = y
+Cell: M4 = .value
+Cell: N4 = #size
+Cell: O4 = #k
+Cell: P4 = #v
+Cell: Q4 = *size
+Cell: R4 = *
+Cell: T4 = *size
+Cell: U4 = *
+Cell: I5 = x
+Cell: J5 = y
+Cell: R5 = *size
+Cell: S5 = *
+Cell: U5 = bool_val
+Cell: V5 = local_date
+Cell: W5 = local_datetime
+Cell: X5 = strange_map
+Cell: X6 = #size
+Cell: Y6 = #k
+Cell: Z6 = #v
+Cell: Z7 = a
+Cell: AA7 = b
+Cell: B8 = Alyssa
+Cell: C8 = 256.0
+Cell: E8 = 2025-01-01T00:00:00Z
+Cell: F8 = 0.0
+Cell: M8 = ABC
+Cell: N8 = 2.0
+Cell: O8 = a
+Cell: P8 = b
+Cell: T8 = 2.0
+Cell: U8 = TRUE
+Cell: V8 = 1/2/25
+Cell: W8 = 1/25/25 19:45
+Cell: X8 = 2.0
+Cell: Y8 = COMP2
+Cell: Z8 = Z
+Cell: AA8 = Y
+Cell: O9 = c
+Cell: P9 = d
+Cell: Y9 = comp
+Cell: Z9 = z
+Cell: AA9 = y
+Cell: U10 = FALSE
+Cell: V10 = 2/1/25
+Cell: W10 = 3/25/25 19:45
+Cell: X10 = 2.0
+Cell: Y10 = comp
+Cell: Z10 = 123
+Cell: AA10 = 456
+Cell: Y11 = qwerty
+Cell: Z11 = 098
+Cell: AA11 = 765
+Cell: B12 = Ben
+Cell: C12 = 7.0
+Cell: D12 = red
+Cell: E12 = 2025-01-02T00:00:00Z
+Cell: F12 = 1.0
+Cell: G12 = 123.4
+Cell: H12 = 2.0
+Cell: I12 = azerty
+Cell: J12 = uiop
+Cell: M12 = DEF
+Cell: Q12 = 2.0
+Cell: R12 = 2.0
+Cell: S12 = 1.0
+Cell: I13 = qsdfg
+Cell: J13 = hjklm
+Cell: S13 = 2.0
+Cell: R14 = 2.0
+Cell: S14 = 3.0
+Cell: S15 = 4.0
+Cell: B16 = Charlie
+Cell: D16 = blue
+Cell: E16 = 2025-01-03T00:00:00Z
+Cell: F16 = 1.0
+Cell: H16 = 1.0
+Cell: I16 = xx
+Cell: J16 = yy
+Cell: K16 = GHI
+Cell: L16 = JKL
+B3:B7
+C4:C7
+D4:D7
+C3:D3
+E3:E7
+F4:F7
+G4:G7
+F3:G3
+H4:H7
+I5:I7
+J5:J7
+I4:J4
+H3:J3
+K4:K7
+L4:L7
+M4:M7
+K3:M3
+N4:N7
+O4:O7
+P4:P7
+N3:P3
+Q4:Q7
+R5:R7
+S5:S7
+R4:S4
+Q3:S3
+T4:T7
+U5:U7
+V5:V7
+W5:W7
+X6:X7
+Y6:Y7
+Z6:AA6
+X5:AA5
+U4:AA4
+T3:AA3
+B8:B11
+C8:C11
+D8:D11
+E8:E11
+F8:F11
+H8:J11
+M8:M11
+N8:N11
+Q8:S11
+T8:T11
 U8:U9
 V8:V9
 W8:W9
-A10:A13
-B10:B13
-C10:C13
-D10:D13
-E10:E13
-G10:G13
-L10:L13
-M10:O13
-P10:P13
-Q10:Q11
-Q12:Q13
-S10:Z13
-M14:O14
-P14:R14
-S14:Z14
+X8:X9
+U10:U11
+V10:V11
+W10:W11
+X10:X11
+B12:B15
+C12:C15
+D12:D15
+E12:E15
+F12:F15
+H12:H15
+M12:M15
+N12:P15
+Q12:Q15
+R12:R13
+R14:R15
+T12:AA15
+N16:P16
+Q16:S16
+T16:AA16

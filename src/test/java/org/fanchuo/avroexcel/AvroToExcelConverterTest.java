@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AvroToExcelConverterTest {
@@ -45,16 +47,18 @@ class AvroToExcelConverterTest {
         File excelFile = TEST_OUTPUT_DIR.resolve("users.xlsx").toFile();
 
         AvroToExcelConverter converter = new AvroToExcelConverter();
-        converter.convert(avroFile, excelFile, "Avro Data", 0, 0);
+        converter.convert(avroFile, excelFile, "Avro Data", 1, 2);
 
         assertTrue(excelFile.exists());
         assertTrue(excelFile.length() > 0);
 
         List<String> dump = ExcelWorkbookDescriptor.dump(excelFile, "Avro Data");
-        System.out.println(dump);
+        System.out.println(String.join("\n", dump));
         StringWriter sw = new StringWriter();
+        URL url = getClass().getResource("/excel_awaited_dump.txt");
+        assertNotNull(url);
         try (
-                InputStream is = getClass().getResourceAsStream("/excel_awaited_dump.txt");
+                InputStream is = url.openStream();
                 Reader r = new InputStreamReader(is)
         ) {
             IOUtils.copy(r, sw);

@@ -13,11 +13,11 @@ public class AvroToExcelConverter {
             Schema schema = avroReader.getSchema();
             HeaderInfo root = HeaderInfo.visitSchema(null, schema);
             try (WorkbookWriter workbookWriter = new WorkbookWriter(excelFile, sheetName)) {
-                workbookWriter.writeHeaders(col, row, root, root.rowSpan);
-                this.idx = root.rowSpan;
+                this.idx = row + root.rowSpan;
+                workbookWriter.writeHeaders(col, row, root, this.idx);
                 avroReader.process(record -> {
                     RecordGeometry recordGeometry = RecordGeometry.visitRecord(record);
-                    workbookWriter.writeRecord(record, root, recordGeometry, 0, idx, idx+recordGeometry.rowSpan);
+                    workbookWriter.writeRecord(record, root, recordGeometry, col, idx, idx+recordGeometry.rowSpan);
                     this.idx += recordGeometry.rowSpan;
                 });
                 workbookWriter.finalize(col, root.colSpan);
