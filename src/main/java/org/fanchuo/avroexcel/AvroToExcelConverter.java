@@ -7,9 +7,11 @@ import java.io.IOException;
 
 public class AvroToExcelConverter {
     private int idx;
-    private WorkbookWriter.Zone zone = WorkbookWriter.Zone.ODD;
+    private WorkbookWriter.Zone zone;
 
     public void convert(File avroFile, File excelFile, String sheetName, int col, int row) throws IOException {
+        this.idx = 0;
+        this.zone = WorkbookWriter.Zone.ODD;
         try (AvroReader avroReader = new AvroReader(avroFile)) {
             Schema schema = avroReader.getSchema();
             HeaderInfo root = HeaderInfo.visitSchema(null, schema);

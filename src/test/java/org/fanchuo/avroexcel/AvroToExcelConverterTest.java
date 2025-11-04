@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,10 +32,12 @@ class AvroToExcelConverterTest {
     void setUp() throws IOException {
         if (Files.exists(TEST_OUTPUT_DIR)) {
             // Recursively delete the directory
-            Files.walk(TEST_OUTPUT_DIR)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
+            try (Stream<Path> paths = Files.walk(TEST_OUTPUT_DIR)) {
+                boolean result = paths.sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .allMatch(File::delete);
+                if (!result) throw new IOException("Failed to delete directory");
+            }
         }
         Files.createDirectories(TEST_OUTPUT_DIR);
     }
