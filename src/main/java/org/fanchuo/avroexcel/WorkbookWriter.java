@@ -4,6 +4,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

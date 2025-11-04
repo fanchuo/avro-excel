@@ -1,6 +1,8 @@
 package org.fanchuo.avroexcel;
 
 import org.apache.avro.Schema;
+import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
+import org.fanchuo.avroexcel.headerinfo.HeaderInfoAvroSchemaReader;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +16,7 @@ public class AvroToExcelConverter {
         this.zone = WorkbookWriter.Zone.ODD;
         try (AvroReader avroReader = new AvroReader(avroFile)) {
             Schema schema = avroReader.getSchema();
-            HeaderInfo root = HeaderInfo.visitSchema(null, schema);
+            HeaderInfo root = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
             try (WorkbookWriter workbookWriter = new WorkbookWriter(excelFile, sheetName)) {
                 this.idx = row + root.rowSpan;
                 workbookWriter.writeHeaders(col, row, root, this.idx);

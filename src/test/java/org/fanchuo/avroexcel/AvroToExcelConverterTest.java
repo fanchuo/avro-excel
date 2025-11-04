@@ -7,6 +7,8 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.commons.io.IOUtils;
+import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
+import org.fanchuo.avroexcel.headerinfo.HeaderInfoExcelReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,6 +72,10 @@ class AvroToExcelConverterTest {
                 Arrays.asList(sw.toString().split("\n")),
                 dump
         );
+        try (InputStream is = new FileInputStream(excelFile)) {
+            HeaderInfo headerInfo = HeaderInfoExcelReader.visitInputStream(is, "Avro Data", 1, 2);
+            System.out.println(headerInfo);
+        }
     }
 
     private void createSampleAvroFile(File file) throws IOException {
