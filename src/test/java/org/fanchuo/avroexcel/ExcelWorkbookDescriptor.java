@@ -1,9 +1,6 @@
 package org.fanchuo.avroexcel;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -29,7 +26,9 @@ public class ExcelWorkbookDescriptor {
                 Iterator<Cell> cellIt = row.cellIterator();
                 while (cellIt.hasNext()) {
                     Cell cell = cellIt.next();
-                    out.add(String.format("Cell: %s = %s", cell.getAddress(), cell));
+                    if (cell.getCellType() != CellType.BLANK) {
+                        out.add(String.format("Cell: %s = %s", cell.getAddress(), cell));
+                    }
                 }
             }
             for (CellRangeAddress cellRangeAddress : sheet.getMergedRegions()) {

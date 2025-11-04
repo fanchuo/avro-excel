@@ -15,33 +15,56 @@ import java.util.*;
 public class WorkbookWriter implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkbookWriter.class);
 
+    public enum Zone {
+        HEADER,
+        ODD,
+        EVEN,
+    }
+
     private final OutputStream outputStream;
     private final Workbook workbook = new XSSFWorkbook();
     private final Sheet sheet;
-    private final CellStyle defaultHeaderStyle = this.workbook.createCellStyle();
-    private final CellStyle defaultMergeStyle = this.workbook.createCellStyle();
-    private final CellStyle defaultDateStyle = this.workbook.createCellStyle();
-    private final CellStyle defaultDatetimeStyle = this.workbook.createCellStyle();
+    private final EnumMap<Zone, CellStyle> regularStyle = new EnumMap<>(Zone.class);
+    private final EnumMap<Zone, CellStyle> dateStyle = new EnumMap<>(Zone.class);
+    private final EnumMap<Zone, CellStyle> datetimeStyle = new EnumMap<>(Zone.class);
 
     public WorkbookWriter(File excelFile, String sheetName) throws IOException {
         this(new FileOutputStream(excelFile), sheetName);
     }
 
+    private CellStyle makeColor(IndexedColors indexedColor) {
+        CellStyle style = this.workbook.createCellStyle();
+        style.setVerticalAlignment(VerticalAlignment.TOP);
+        style.setFillForegroundColor(indexedColor.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setBorderTop(BorderStyle.THIN);
+        return style;
+    }
+
     public WorkbookWriter(OutputStream outputStream, String sheetName) {
         this.sheet = workbook.createSheet(sheetName);
         this.outputStream = outputStream;
-        this.defaultHeaderStyle.setVerticalAlignment(VerticalAlignment.TOP);
-        this.defaultHeaderStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
-        this.defaultHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        this.defaultHeaderStyle.setBorderBottom(BorderStyle.THIN);
-        this.defaultHeaderStyle.setBorderLeft(BorderStyle.THIN);
-        this.defaultHeaderStyle.setBorderRight(BorderStyle.THIN);
-        this.defaultHeaderStyle.setBorderTop(BorderStyle.THIN);
-        this.defaultMergeStyle.setVerticalAlignment(VerticalAlignment.TOP);
-        this.defaultDateStyle.setVerticalAlignment(VerticalAlignment.TOP);
-        this.defaultDateStyle.setDataFormat((short) 14);
-        this.defaultDatetimeStyle.setVerticalAlignment(VerticalAlignment.TOP);
-        this.defaultDatetimeStyle.setDataFormat((short) 22);
+        CellStyle headerStyle = this.makeColor(IndexedColors.LIGHT_YELLOW);
+        CellStyle regularOddStyle = this.makeColor(IndexedColors.WHITE);
+        CellStyle dateOddStyle = this.makeColor(IndexedColors.WHITE);
+        CellStyle datetimeOddStyle = this.makeColor(IndexedColors.WHITE);
+        CellStyle regularEvenStyle = this.makeColor(IndexedColors.GREY_25_PERCENT);
+        CellStyle dateEvenStyle = this.makeColor(IndexedColors.GREY_25_PERCENT);
+        CellStyle datetimeEvenStyle = this.makeColor(IndexedColors.GREY_25_PERCENT);
+        dateOddStyle.setDataFormat((short) 14);
+        datetimeOddStyle.setDataFormat((short) 22);
+        dateEvenStyle.setDataFormat((short) 14);
+        datetimeEvenStyle.setDataFormat((short) 22);
+        this.regularStyle.put(Zone.HEADER, headerStyle);
+        this.regularStyle.put(Zone.ODD, regularOddStyle);
+        this.regularStyle.put(Zone.EVEN, regularEvenStyle);
+        this.dateStyle.put(Zone.ODD, dateOddStyle);
+        this.dateStyle.put(Zone.EVEN, dateEvenStyle);
+        this.datetimeStyle.put(Zone.ODD, datetimeOddStyle);
+        this.datetimeStyle.put(Zone.EVEN, datetimeEvenStyle);
     }
 
     private Row getRow(int row) {
@@ -75,46 +98,53 @@ public class WorkbookWriter implements Closeable {
             CellRangeAddress range = new CellRangeAddress(row, lastRow, col, lastCol);
             sheet.addMergedRegion(range);
         }
-        c.setCellStyle(this.defaultHeaderStyle);
         this.sheet.createFreezePane(col, maxDepth);
     }
 
-    public void writeRecord(GenericRecord record, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth) {
+    public void color(int col, int row, int width, int height, Zone zone) {
+        for (int i=0; i<width; i++) {
+            for (int j=0; j<height; j++) {
+                getCell(row+j, col+i).setCellStyle(this.regularStyle.get(zone));
+            }
+        }
+    }
+
+    public void writeRecord(GenericRecord record, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth, Zone zone) {
         LOGGER.info("record: {}", record);
         LOGGER.info("recordGeometry: {}", recordGeometry);
         int offset = col;
         for (HeaderInfo subHeader : headerInfo.subHeaders) {
             if (record.hasField(subHeader.text)) {
-                writeObject(record.get(subHeader.text), subHeader, recordGeometry.subRecords.get(subHeader.text), offset, row, maxDepth);
+                writeObject(record.get(subHeader.text), subHeader, recordGeometry.subRecords.get(subHeader.text), offset, row, maxDepth, zone);
             }
             offset += subHeader.colSpan;
         }
     }
 
-    private void writeIterable(Iterable<?> lst, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row) {
+    private void writeIterable(Iterable<?> lst, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, Zone zone) {
         int i=0;
         int offsetRow=row;
         for (Object o : lst) {
             RecordGeometry subList = recordGeometry.subLists.get(i++);
             int end = offsetRow + subList.rowSpan;
-            writeObject(o, headerInfo, subList, col, offsetRow, end);
+            writeObject(o, headerInfo, subList, col, offsetRow, end, zone);
             offsetRow = end;
         }
     }
 
-    public void writeList(List<?> lst, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth) {
+    public void writeList(List<?> lst, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth, Zone zone) {
         int offset = col;
         for (HeaderInfo subHeader : headerInfo.subHeaders) {
             if ("*size".equals(subHeader.text)) {
-                writeObject(lst.size(), subHeader, RecordGeometry.ATOM, offset, row, maxDepth);
+                writeObject(lst.size(), subHeader, RecordGeometry.ATOM, offset, row, maxDepth, zone);
             } else if ("*".equals(subHeader.text)) {
-                writeIterable(lst, subHeader, recordGeometry, offset, row);
+                writeIterable(lst, subHeader, recordGeometry, offset, row, zone);
             }
             offset += subHeader.colSpan;
         }
     }
 
-    public void writeMap(Map<?, ?> map, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth) {
+    public void writeMap(Map<?, ?> map, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth, Zone zone) {
         int offset = col;
         List<Object> keys = new ArrayList<>();
         List<Object> values = new ArrayList<>();
@@ -125,27 +155,27 @@ public class WorkbookWriter implements Closeable {
         }
         for (HeaderInfo subHeader : headerInfo.subHeaders) {
             if ("#size".equals(subHeader.text)) {
-                writeObject(map.size(), subHeader, RecordGeometry.ATOM, offset, row, maxDepth);
+                writeObject(map.size(), subHeader, RecordGeometry.ATOM, offset, row, maxDepth, zone);
             } else if ("#k".equals(subHeader.text)) {
-                writeIterable(keys, subHeader, recordGeometry, offset, row);
+                writeIterable(keys, subHeader, recordGeometry, offset, row, zone);
             } else if ("#v".equals(subHeader.text)) {
-                writeIterable(values, subHeader, recordGeometry, offset, row);
+                writeIterable(values, subHeader, recordGeometry, offset, row, zone);
             }
             offset += subHeader.colSpan;
         }
     }
 
-    public void writeObject(Object value, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth) {
+    public void writeObject(Object value, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth, Zone zone) {
         if (value instanceof GenericRecord) {
-            writeRecord((GenericRecord) value, headerInfo, recordGeometry, col, row, maxDepth);
+            writeRecord((GenericRecord) value, headerInfo, recordGeometry, col, row, maxDepth, zone);
             return;
         }
         if (value instanceof List) {
-            writeList((List<?>) value, headerInfo, recordGeometry, col, row, maxDepth);
+            writeList((List<?>) value, headerInfo, recordGeometry, col, row, maxDepth, zone);
             return;
         }
         if (value instanceof Map) {
-            writeMap((Map<?, ?>) value, headerInfo, recordGeometry, col, row, maxDepth);
+            writeMap((Map<?, ?>) value, headerInfo, recordGeometry, col, row, maxDepth, zone);
             return;
         }
         if (value == null) {
@@ -168,19 +198,16 @@ public class WorkbookWriter implements Closeable {
         Cell c = getCell(row, offset);
         if (value instanceof Number) {
             c.setCellValue(((Number) value).doubleValue());
-            c.setCellStyle(this.defaultMergeStyle);
         } else if (value instanceof Boolean) {
             c.setCellValue((Boolean) value);
-            c.setCellStyle(this.defaultMergeStyle);
         } else if (value instanceof LocalDate) {
             c.setCellValue((LocalDate) value);
-            c.setCellStyle(this.defaultDateStyle);
+            c.setCellStyle(this.dateStyle.get(zone));
         } else if (value instanceof LocalDateTime) {
             c.setCellValue((LocalDateTime) value);
-            c.setCellStyle(this.defaultDatetimeStyle);
+            c.setCellStyle(this.datetimeStyle.get(zone));
         } else {
             c.setCellValue(String.valueOf(value));
-            c.setCellStyle(this.defaultMergeStyle);
         }
         if (row+1 != maxDepth) {
             CellRangeAddress range = new CellRangeAddress(row, maxDepth-1, offset, offset);
