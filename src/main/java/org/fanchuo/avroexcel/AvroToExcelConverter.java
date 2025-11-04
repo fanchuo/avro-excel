@@ -3,6 +3,8 @@ package org.fanchuo.avroexcel;
 import org.apache.avro.Schema;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfoAvroSchemaReader;
+import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
+import org.fanchuo.avroexcel.recordgeometry.RecordGeometryAvroReader;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +24,7 @@ public class AvroToExcelConverter {
                 workbookWriter.writeHeaders(col, row, root, this.idx);
                 workbookWriter.color(col, row, root.colSpan, root.rowSpan, WorkbookWriter.Zone.HEADER);
                 avroReader.process(record -> {
-                    RecordGeometry recordGeometry = RecordGeometry.visitRecord(record);
+                    RecordGeometry recordGeometry = RecordGeometryAvroReader.visitRecord(record);
                     workbookWriter.color(col, this.idx, root.colSpan, recordGeometry.rowSpan, zone);
                     workbookWriter.writeRecord(record, root, recordGeometry, col, idx, idx+recordGeometry.rowSpan, zone);
                     this.idx += recordGeometry.rowSpan;

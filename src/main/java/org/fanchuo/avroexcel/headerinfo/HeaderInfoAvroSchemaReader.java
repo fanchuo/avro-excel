@@ -7,6 +7,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class HeaderInfoAvroSchemaReader {
+    private HeaderInfoAvroSchemaReader() {}
+
     public static HeaderInfo visitRecord(String name, Schema schema) {
         int colSpan = 0;
         int rowSpan = 0;

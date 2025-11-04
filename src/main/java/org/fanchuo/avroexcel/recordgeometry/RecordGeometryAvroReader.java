@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel;
+package org.fanchuo.avroexcel.recordgeometry;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
@@ -8,17 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RecordGeometry {
-    public static final RecordGeometry ATOM = new RecordGeometry(1, null, null);
-    public final int rowSpan;
-    public final Map<String, RecordGeometry> subRecords;
-    public final List<RecordGeometry> subLists;
-
-    private RecordGeometry(int rowSpan, Map<String, RecordGeometry> subRecords, List<RecordGeometry> subLists) {
-        this.rowSpan = rowSpan;
-        this.subRecords = subRecords;
-        this.subLists = subLists;
-    }
+public class RecordGeometryAvroReader {
+    private RecordGeometryAvroReader() {}
 
     public static RecordGeometry visitObject(Object value) {
         if (value instanceof GenericRecord) {
@@ -30,7 +21,7 @@ public class RecordGeometry {
         if (value instanceof Map) {
             return visitMap((Map<?,?>) value);
         }
-        return ATOM;
+        return RecordGeometry.ATOM;
     }
 
     public static RecordGeometry visitRecord(GenericRecord record) {
@@ -54,7 +45,7 @@ public class RecordGeometry {
             cumul += subList.rowSpan;
             subLists.add(subList);
         }
-        if (cumul==0) return ATOM;
+        if (cumul==0) return RecordGeometry.ATOM;
         return new RecordGeometry(cumul, null, subLists);
     }
 
@@ -66,16 +57,7 @@ public class RecordGeometry {
             cumul += subList.rowSpan;
             subLists.add(subList);
         }
-        if (cumul==0) return ATOM;
+        if (cumul==0) return RecordGeometry.ATOM;
         return new RecordGeometry(cumul, null, subLists);
-    }
-
-    @Override
-    public String toString() {
-        return "RecordGeometry{" +
-                "rowSpan=" + rowSpan +
-                ", subRecords=" + subRecords +
-                ", subLists=" + subLists +
-                '}';
     }
 }
