@@ -9,7 +9,7 @@ public class RecordGeometry {
     public final Map<String, RecordGeometry> subRecords;
     public final List<RecordGeometry> subLists;
 
-    RecordGeometry(int rowSpan, Map<String, RecordGeometry> subRecords, List<RecordGeometry> subLists) {
+    public RecordGeometry(int rowSpan, Map<String, RecordGeometry> subRecords, List<RecordGeometry> subLists) {
         this.rowSpan = rowSpan;
         this.subRecords = subRecords;
         this.subLists = subLists;
