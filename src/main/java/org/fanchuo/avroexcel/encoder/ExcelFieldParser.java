@@ -84,10 +84,10 @@ public class ExcelFieldParser {
                 if (cell.getCellType()==CellType.STRING) {
                     String str = cell.getStringCellValue();
                     ParsePosition position = new ParsePosition(0);
-                    TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parseUnresolved(str, position);
+                    TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_INSTANT.parseUnresolved(str, position);
                     if(position.getErrorIndex()<0) {
                         this.compatible = true;
-                        this.value = temporalAccessor.query(Instant::from);
+                        this.value = Instant.from(temporalAccessor);
                     }
                 }
             } else if (cell.getCellType()==CellType.NUMERIC) {
@@ -162,21 +162,20 @@ public class ExcelFieldParser {
         registry.put(Schema.Type.FLOAT, new FloatExcelFieldParser());
         registry.put(Schema.Type.DOUBLE, new DoubleExcelFieldParser());
         registry.put(Schema.Type.BOOLEAN, new BooleanExcelFieldParser());
-        registry.put(Schema.Type.NULL, NULL_PARSER);
     }
 
     public static TypeParser checkCompatible(Schema s, Cell cell) {
-        List<Schema> schemas = ParserTools.flatten(s, x->true);
+        if (cell==null || cell.getCellType()==CellType.BLANK) {
+            NULL_PARSER.compatible = s.isNullable();
+            return NULL_PARSER;
+        }
+        List<Schema> schemas = ParserTools.flatten(s, x->registry.containsKey(x.getType()));
         TypeParser stringTypeParser = null;
         for (Schema schema : schemas) {
-            TypeParser typeParser = registry.getOrDefault(schema.getType(), NULL_PARSER);
+            TypeParser typeParser = registry.get(schema.getType());
             typeParser.compatible = false;
             typeParser.value = null;
-            if (schema.getType()==Schema.Type.NULL) {
-                if (cell==null || cell.getCellType()==CellType.BLANK) typeParser.compatible = true;
-            } else if (cell!=null) {
-                typeParser.analyze(schema, cell);
-            }
+            typeParser.analyze(schema, cell);
             if (schema.getType()==Schema.Type.STRING) {
                 stringTypeParser = typeParser;
             } else {

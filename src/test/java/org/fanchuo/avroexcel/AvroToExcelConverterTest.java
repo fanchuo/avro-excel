@@ -5,12 +5,12 @@ import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.commons.io.IOUtils;
+import org.fanchuo.avroexcel.encoder.ExcelToAvro;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
-import org.fanchuo.avroexcel.headerinfo.HeaderInfoExcelReader;
+import org.fanchuo.avroexcel.headerinfo.HeaderInfoAvroSchemaReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,8 +48,9 @@ class AvroToExcelConverterTest {
 
     @Test
     void convert() throws IOException {
+        Schema schema = new Schema.Parser().parse(getClass().getResourceAsStream("/user.avsc"));
         File avroFile = TEST_OUTPUT_DIR.resolve("users.avro").toFile();
-        createSampleAvroFile(avroFile);
+        createSampleAvroFile(avroFile, schema);
 
         File excelFile = TEST_OUTPUT_DIR.resolve("users.xlsx").toFile();
 
@@ -76,14 +77,20 @@ class AvroToExcelConverterTest {
         );
         try (InputStream is = new FileInputStream(excelFile)) {
             ExcelSheetReader excelSheetReader = ExcelSheetReader.loadSheet(is, "Avro Data");
-            HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, 1, 2);
-            System.out.println(headerInfo);
+            //HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, 1, 2);
+            //System.out.println(headerInfo); // TODO servira pour l'inference de type
+            HeaderInfo headerInfo = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
+            ExcelToAvro excelToAvro = new ExcelToAvro(excelSheetReader, schema, headerInfo, 1, 2 + headerInfo.rowSpan);
+            GenericRecord record;
+            do {
+                record = excelToAvro.readRecord();
+                System.out.println(record);
+            } while (record!=null);
         }
     }
 
-    private void createSampleAvroFile(File file) throws IOException {
+    private void createSampleAvroFile(File file, Schema schema) throws IOException {
         GenericData genericData = AvroReader.makeGenericData();
-        Schema schema = new Schema.Parser().parse(getClass().getResourceAsStream("/user.avsc"));
         Schema favoriteSchema = schema.getField("favorite").schema();
         Integer pointSchemaIdx = schema.getField("lst2").schema().getIndexNamed("array");
         Schema pointSchema = schema.getField("lst2").schema().getTypes().get(pointSchemaIdx).getElementType();

@@ -21,4 +21,14 @@ public class HeaderInfo {
         this.isNull = isNull;
     }
 
+    @Override
+    public String toString() {
+        return "HeaderInfo{" +
+                "text='" + text + '\'' +
+                ", colSpan=" + colSpan +
+                ", rowSpan=" + rowSpan +
+                ", subHeaders=" + subHeaders +
+                ", isNull=" + isNull +
+                '}';
+    }
 }

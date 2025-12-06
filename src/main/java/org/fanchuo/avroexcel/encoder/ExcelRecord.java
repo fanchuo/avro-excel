@@ -13,12 +13,4 @@ public class ExcelRecord {
         this.candidates = candidates;
         this.recordGeometry = recordGeometry;
     }
-
-    boolean isNull() {
-        if (this.candidates.size() == 1) {
-            Object value = this.candidates.values().iterator().next();
-            return value == null;
-        }
-        return false;
-    }
 }

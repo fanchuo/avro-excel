@@ -1,18 +1,21 @@
 package org.fanchuo.avroexcel.encoder;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
-import org.fanchuo.avroexcel.AvroReader;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ExcelToAvro {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExcelToAvro.class);
+
     private static class CollectionDescriptor {
         final int col;
         final HeaderInfo headerInfo;
@@ -28,7 +31,6 @@ public class ExcelToAvro {
     private final HeaderInfo headerInfo;
     private final int col;
     private int row;
-    private final GenericData genericData = AvroReader.makeGenericData();
 
     public ExcelToAvro(ExcelSheetReader sheet, Schema schema, HeaderInfo headerInfo, int col, int row) {
         this.sheet = sheet;
@@ -47,16 +49,19 @@ public class ExcelToAvro {
     }
 
     private ExcelRecord visitScalar(int col, int row, List<Schema> schemas) {
+        LOGGER.info("visitScalar : col: {}, row: {}, schemas: {}", col, row, schemas);
         Cell c = sheet.getCell(col, row);
         Map<Schema, Object> excelRecords = new HashMap<>();
         for (Schema schema : schemas) {
             ExcelFieldParser.TypeParser typeParser = ExcelFieldParser.checkCompatible(schema, c);
             if (typeParser.compatible) excelRecords.put(schema, typeParser.value);
         }
+        LOGGER.info("return scalar - {}", excelRecords);
         return new ExcelRecord(excelRecords, RecordGeometry.ATOM);
     }
 
     private ExcelRecord visitObject(int col, int row, List<Schema> schemas, HeaderInfo headerInfo) {
+        LOGGER.info("visitObject : col: {}, row: {}, schemas: {}, headerInfo: {}", col, row, schemas, headerInfo);
         if (headerInfo.subHeaders==null) {
             return visitScalar(col, row, schemas);
         }
@@ -87,7 +92,7 @@ public class ExcelToAvro {
                 mapCol = new CollectionDescriptor(colIdx, subHeader);
             } else if (".value".equals(subHeader.text)) {
                 ExcelRecord scalar = visitScalar(colIdx, row, schemas);
-                if (!scalar.isNull()) return scalar;
+                if (!scalar.candidates.isEmpty() && scalar.candidates.values().iterator().next()!=null) return scalar;
             } else {
                 List<Schema> subSchema = new ArrayList<>();
                 for (Schema schema : recordSubSchemas) {
@@ -95,7 +100,7 @@ public class ExcelToAvro {
                     if (field!=null) subSchema.add(field.schema());
                 }
                 ExcelRecord field = visitObject(colIdx, row, subSchema, subHeader);
-                if (!field.isNull() && !field.candidates.isEmpty()) subRecords.put(subHeader.text, field);
+                if (!field.candidates.isEmpty()) subRecords.put(subHeader.text, field);
             }
             colIdx += subHeader.colSpan;
         }
@@ -109,6 +114,7 @@ public class ExcelToAvro {
     }
 
     private ExcelRecord visitRecord(Map<String, ExcelRecord> subRecords, List<Schema> schemas) {
+        LOGGER.info("visitRecord : subRecords: {}, schemas: {}", subRecords, schemas);
         Map<Schema, Object> candidates = new HashMap<>();
         int rowSpan = 0;
         Map<String, RecordGeometry> map = new HashMap<>();
@@ -117,16 +123,18 @@ public class ExcelToAvro {
             map.put(entry.getKey(), entry.getValue().recordGeometry);
         }
         for (Schema schema : schemas) {
-            ExcelRecordParser.RecordParser recordParser = ExcelRecordParser.parseRecord(subRecords, schema);
+            ParserResult recordParser = ExcelRecordParser.parseRecord(subRecords, schema);
             if (recordParser.compatible) {
-                GenericRecord record = recordParser.payload;
+                Object record = recordParser.payload;
                 candidates.put(schema, record);
             }
         }
+        LOGGER.info("return record - {}", candidates);
         return new ExcelRecord(candidates, new RecordGeometry(rowSpan, map, null));
     }
 
     private ExcelRecord visitArray(int row, int collectionSize, List<Schema> schemas, CollectionDescriptor collectionDescriptor) {
+        LOGGER.info("visitArray : row: {}, collectionSize: {}, schemas: {}, collectionDescriptor: {}", row, collectionSize, schemas, collectionDescriptor);
         List<Schema> arraySchemas = ParserTools.flatten(schemas, x -> x.getType() == Schema.Type.ARRAY)
                 .stream().map(Schema::getElementType).collect(Collectors.toList());
         final int col = collectionDescriptor.col;
@@ -144,15 +152,17 @@ public class ExcelToAvro {
             records.add(entry);
         }
         for (Schema schema : schemas) {
-            ExcelArrayParser.ArrayParser arrayParser = ExcelArrayParser.parseArray(records, schema);
+            ParserResult arrayParser = ExcelArrayParser.parseArray(records, schema);
             if (arrayParser.compatible) {
                 candidates.put(schema, arrayParser.payload);
             }
         }
+        LOGGER.info("return array - {}", candidates);
         return new ExcelRecord(candidates, new RecordGeometry(rowSpan, null, subList));
     }
 
     private ExcelRecord visitMap(int row, int collectionSize, List<Schema> schemas, CollectionDescriptor keyDesc, CollectionDescriptor valueDesc) {
+        LOGGER.info("visitMap : row: {}, collectionSize: {}, schemas: {}, keyDesc: {}, valueDesc: {}", row, collectionSize, schemas, keyDesc, valueDesc);
         List<Schema> mapSchemas = ParserTools.flatten(schemas, x -> x.getType() == Schema.Type.MAP)
                 .stream().map(Schema::getValueType).collect(Collectors.toList());
         final int keyCol = keyDesc.col;
@@ -172,11 +182,12 @@ public class ExcelToAvro {
         }
         Map<Schema, Object> candidates = new HashMap<>();
         for (Schema schema : schemas) {
-            ExcelMapParser.MapParser arrayParser = ExcelMapParser.parseMap(records, schema);
+            ParserResult arrayParser = ExcelMapParser.parseMap(records, schema);
             if (arrayParser.compatible) {
                 candidates.put(schema, arrayParser.payload);
             }
         }
+        LOGGER.info("return map - {}", candidates);
         return new ExcelRecord(candidates, new RecordGeometry(rowSpan, null, subList));
     }
 }
