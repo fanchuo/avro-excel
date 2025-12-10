@@ -49,19 +49,19 @@ public class ExcelToAvro {
     }
 
     private ExcelRecord visitScalar(int col, int row, List<Schema> schemas) {
-        LOGGER.info("visitScalar : col: {}, row: {}, schemas: {}", col, row, schemas);
+        LOGGER.debug("visitScalar : col: {}, row: {}, schemas: {}", col, row, schemas);
         Cell c = sheet.getCell(col, row);
         Map<Schema, Object> excelRecords = new HashMap<>();
         for (Schema schema : schemas) {
             ExcelFieldParser.TypeParser typeParser = ExcelFieldParser.checkCompatible(schema, c);
             if (typeParser.compatible) excelRecords.put(schema, typeParser.value);
         }
-        LOGGER.info("return scalar - {}", excelRecords);
+        LOGGER.debug("return scalar - {}", excelRecords);
         return new ExcelRecord(excelRecords, RecordGeometry.ATOM);
     }
 
     private ExcelRecord visitObject(int col, int row, List<Schema> schemas, HeaderInfo headerInfo) {
-        LOGGER.info("visitObject : col: {}, row: {}, schemas: {}, headerInfo: {}", col, row, schemas, headerInfo);
+        LOGGER.debug("visitObject : col: {}, row: {}, schemas: {}, headerInfo: {}", col, row, schemas, headerInfo);
         if (headerInfo.subHeaders==null) {
             return visitScalar(col, row, schemas);
         }
@@ -114,7 +114,7 @@ public class ExcelToAvro {
     }
 
     private ExcelRecord visitRecord(Map<String, ExcelRecord> subRecords, List<Schema> schemas) {
-        LOGGER.info("visitRecord : subRecords: {}, schemas: {}", subRecords, schemas);
+        LOGGER.debug("visitRecord : subRecords: {}, schemas: {}", subRecords, schemas);
         Map<Schema, Object> candidates = new HashMap<>();
         int rowSpan = 0;
         Map<String, RecordGeometry> map = new HashMap<>();
@@ -129,12 +129,12 @@ public class ExcelToAvro {
                 candidates.put(schema, record);
             }
         }
-        LOGGER.info("return record - {}", candidates);
+        LOGGER.debug("return record - {}", candidates);
         return new ExcelRecord(candidates, new RecordGeometry(rowSpan, map, null));
     }
 
     private ExcelRecord visitArray(int row, int collectionSize, List<Schema> schemas, CollectionDescriptor collectionDescriptor) {
-        LOGGER.info("visitArray : row: {}, collectionSize: {}, schemas: {}, collectionDescriptor: {}", row, collectionSize, schemas, collectionDescriptor);
+        LOGGER.debug("visitArray : row: {}, collectionSize: {}, schemas: {}, collectionDescriptor: {}", row, collectionSize, schemas, collectionDescriptor);
         List<Schema> arraySchemas = ParserTools.flatten(schemas, x -> x.getType() == Schema.Type.ARRAY)
                 .stream().map(Schema::getElementType).collect(Collectors.toList());
         final int col = collectionDescriptor.col;
@@ -157,12 +157,12 @@ public class ExcelToAvro {
                 candidates.put(schema, arrayParser.payload);
             }
         }
-        LOGGER.info("return array - {}", candidates);
+        LOGGER.debug("return array - {}", candidates);
         return new ExcelRecord(candidates, new RecordGeometry(rowSpan, null, subList));
     }
 
     private ExcelRecord visitMap(int row, int collectionSize, List<Schema> schemas, CollectionDescriptor keyDesc, CollectionDescriptor valueDesc) {
-        LOGGER.info("visitMap : row: {}, collectionSize: {}, schemas: {}, keyDesc: {}, valueDesc: {}", row, collectionSize, schemas, keyDesc, valueDesc);
+        LOGGER.debug("visitMap : row: {}, collectionSize: {}, schemas: {}, keyDesc: {}, valueDesc: {}", row, collectionSize, schemas, keyDesc, valueDesc);
         List<Schema> mapSchemas = ParserTools.flatten(schemas, x -> x.getType() == Schema.Type.MAP)
                 .stream().map(Schema::getValueType).collect(Collectors.toList());
         final int keyCol = keyDesc.col;
@@ -187,7 +187,7 @@ public class ExcelToAvro {
                 candidates.put(schema, arrayParser.payload);
             }
         }
-        LOGGER.info("return map - {}", candidates);
+        LOGGER.debug("return map - {}", candidates);
         return new ExcelRecord(candidates, new RecordGeometry(rowSpan, null, subList));
     }
 }

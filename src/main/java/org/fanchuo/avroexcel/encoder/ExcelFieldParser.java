@@ -74,10 +74,12 @@ public class ExcelFieldParser {
         @Override
         public void analyze(Schema schema, Cell cell) {
             String logicalType = schema.getLogicalType()==null?null:schema.getLogicalType().getName();
-            if (LOCALDATE_LOGICAL_TYPES.contains(logicalType)) {
+            if (logicalType!=null && LOCALDATE_LOGICAL_TYPES.contains(logicalType)) {
                 if (cell.getCellType()==CellType.NUMERIC && isDate(cell)) {
                     this.compatible = true;
-                    this.value = cell.getLocalDateTimeCellValue();
+                    if ("date".equals(logicalType)) this.value = cell.getLocalDateTimeCellValue().toLocalDate();
+                    else if (logicalType.startsWith("time-")) this.value = cell.getLocalDateTimeCellValue().toLocalTime();
+                    else this.value = cell.getLocalDateTimeCellValue();
                 }
             }
             else if (TIMESTAMP_LOGICAL_TYPES.contains(logicalType)) {

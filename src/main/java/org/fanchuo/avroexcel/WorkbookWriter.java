@@ -112,8 +112,8 @@ public class WorkbookWriter implements Closeable {
     }
 
     public void writeRecord(GenericRecord record, HeaderInfo headerInfo, RecordGeometry recordGeometry, int col, int row, int maxDepth, Zone zone) {
-        LOGGER.info("record: {}", record);
-        LOGGER.info("recordGeometry: {}", recordGeometry);
+        LOGGER.debug("record: {}", record);
+        LOGGER.debug("recordGeometry: {}", recordGeometry);
         int offset = col;
         for (HeaderInfo subHeader : headerInfo.subHeaders) {
             if (record.hasField(subHeader.text)) {

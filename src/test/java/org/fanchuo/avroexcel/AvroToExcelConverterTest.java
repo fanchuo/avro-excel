@@ -7,6 +7,7 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.fanchuo.avroexcel.encoder.ExcelToAvro;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
@@ -82,10 +83,15 @@ class AvroToExcelConverterTest {
             HeaderInfo headerInfo = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
             ExcelToAvro excelToAvro = new ExcelToAvro(excelSheetReader, schema, headerInfo, 1, 2 + headerInfo.rowSpan);
             GenericRecord record;
-            do {
-                record = excelToAvro.readRecord();
-                System.out.println(record);
-            } while (record!=null);
+            GenericData genericData = AvroReader.makeGenericData();
+            DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema, genericData);
+            try (DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter)) {
+                dataFileWriter.create(schema, NullOutputStream.INSTANCE);
+                while ( (record=excelToAvro.readRecord()) != null) {
+                    System.out.println(record);
+                    dataFileWriter.append(record);
+                }
+            }
         }
     }
 
