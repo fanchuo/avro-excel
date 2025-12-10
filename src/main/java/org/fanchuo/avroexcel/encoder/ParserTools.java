@@ -13,13 +13,17 @@ public class ParserTools {
     }
     public static List<Schema> flatten(List<Schema> schemas, Predicate<Schema> predicate) {
         List<Schema> output = new ArrayList<>();
+        collect(schemas, predicate, output);
+        return output;
+    }
+
+    private static void collect(List<Schema> schemas, Predicate<Schema> predicate, List<Schema> output) {
         for (Schema schema : schemas) {
             if (schema.getType() == Schema.Type.UNION) {
-                output.addAll(flatten(schema.getTypes(), predicate));
+                collect(schema.getTypes(), predicate, output);
             } else if (predicate.test(schema)) {
                 output.add(schema);
             }
         }
-        return output;
     }
 }

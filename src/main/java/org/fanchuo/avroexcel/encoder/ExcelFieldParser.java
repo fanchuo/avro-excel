@@ -154,9 +154,10 @@ public class ExcelFieldParser {
         public void analyze(Schema schema, Cell cell) {}
     }
 
-    private static final NullExcelFieldParser  NULL_PARSER = new NullExcelFieldParser();
-    private static final EnumMap<Schema.Type, TypeParser> registry = new EnumMap<>(Schema.Type.class);
-    static {
+    private final NullExcelFieldParser  NULL_PARSER = new NullExcelFieldParser();
+    private final EnumMap<Schema.Type, TypeParser> registry = new EnumMap<>(Schema.Type.class);
+
+    public ExcelFieldParser() {
         registry.put(Schema.Type.ENUM, new EnumExcelFieldParser());
         registry.put(Schema.Type.STRING, new StringExcelFieldParser());
         registry.put(Schema.Type.INT, new IntExcelFieldParser());
@@ -166,7 +167,7 @@ public class ExcelFieldParser {
         registry.put(Schema.Type.BOOLEAN, new BooleanExcelFieldParser());
     }
 
-    public static TypeParser checkCompatible(Schema s, Cell cell) {
+    public TypeParser checkCompatible(Schema s, Cell cell) {
         if (cell==null || cell.getCellType()==CellType.BLANK) {
             NULL_PARSER.compatible = s.isNullable();
             return NULL_PARSER;

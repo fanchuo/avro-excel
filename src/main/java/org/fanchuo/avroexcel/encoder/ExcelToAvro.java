@@ -30,6 +30,7 @@ public class ExcelToAvro {
     private final Schema schema;
     private final HeaderInfo headerInfo;
     private final int col;
+    private final ExcelFieldParser excelFieldParser = new ExcelFieldParser();
     private int row;
 
     public ExcelToAvro(ExcelSheetReader sheet, Schema schema, HeaderInfo headerInfo, int col, int row) {
@@ -53,7 +54,7 @@ public class ExcelToAvro {
         Cell c = sheet.getCell(col, row);
         Map<Schema, Object> excelRecords = new HashMap<>();
         for (Schema schema : schemas) {
-            ExcelFieldParser.TypeParser typeParser = ExcelFieldParser.checkCompatible(schema, c);
+            ExcelFieldParser.TypeParser typeParser = this.excelFieldParser.checkCompatible(schema, c);
             if (typeParser.compatible) excelRecords.put(schema, typeParser.value);
         }
         LOGGER.debug("return scalar - {}", excelRecords);
@@ -92,7 +93,7 @@ public class ExcelToAvro {
                 mapCol = new CollectionDescriptor(colIdx, subHeader);
             } else if (".value".equals(subHeader.text)) {
                 ExcelRecord scalar = visitScalar(colIdx, row, schemas);
-                if (!scalar.candidates.isEmpty() && scalar.candidates.values().iterator().next()!=null) return scalar;
+                if (!scalar.candidates.isEmpty() && scalar.candidates.values().stream().anyMatch(Objects::nonNull)) return scalar;
             } else {
                 List<Schema> subSchema = new ArrayList<>();
                 for (Schema schema : recordSubSchemas) {
@@ -152,7 +153,7 @@ public class ExcelToAvro {
             records.add(entry);
         }
         for (Schema schema : schemas) {
-            ParserResult arrayParser = ExcelArrayParser.parseArray(records, schema);
+            ParserResult arrayParser = ExcelCollectionParser.ARRAY_PARSER.parseCollection(records, schema);
             if (arrayParser.compatible) {
                 candidates.put(schema, arrayParser.payload);
             }
@@ -182,7 +183,7 @@ public class ExcelToAvro {
         }
         Map<Schema, Object> candidates = new HashMap<>();
         for (Schema schema : schemas) {
-            ParserResult arrayParser = ExcelMapParser.parseMap(records, schema);
+            ParserResult arrayParser = ExcelCollectionParser.MAP_PARSER.parseCollection(records, schema);
             if (arrayParser.compatible) {
                 candidates.put(schema, arrayParser.payload);
             }
