@@ -85,13 +85,30 @@ class AvroToExcelConverterTest {
             GenericRecord record;
             GenericData genericData = AvroReader.makeGenericData();
             DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema, genericData);
-            try (DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter)) {
+            List<String> dump2 = new ArrayList<>();
+            try (
+                    DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter)
+            ) {
                 dataFileWriter.create(schema, NullOutputStream.INSTANCE);
                 while ( (record=excelToAvro.readRecord()) != null) {
-                    System.out.println(record);
+                    dump2.add(record.toString());
                     dataFileWriter.append(record);
                 }
             }
+            System.out.println(String.join("\n", dump2));
+            StringWriter sw2 = new StringWriter();
+            URL url2 = getClass().getResource("/reencoded.jsons");
+            assertNotNull(url2);
+            try (
+                    InputStream is2 = url2.openStream();
+                    Reader r2 = new InputStreamReader(is2)
+            ) {
+                IOUtils.copy(r2, sw2);
+            }
+            Assertions.assertLinesMatch(
+                    Arrays.asList(sw2.toString().split("\n")),
+                    dump2
+            );
         }
     }
 
