@@ -7,11 +7,6 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
-import org.fanchuo.avroexcel.encoder.ExcelToAvro;
-import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
-import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
-import org.fanchuo.avroexcel.headerinfo.HeaderInfoAvroSchemaReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,40 +71,25 @@ class AvroToExcelConverterTest {
                 Arrays.asList(sw.toString().split("\n")),
                 dump
         );
-        try (InputStream is = new FileInputStream(excelFile)) {
-            ExcelSheetReader excelSheetReader = ExcelSheetReader.loadSheet(is, "Avro Data");
-            //HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, 1, 2);
-            //System.out.println(headerInfo); // TODO servira pour l'inference de type
-            HeaderInfo headerInfo = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
-            ExcelToAvro excelToAvro = new ExcelToAvro(excelSheetReader, schema, headerInfo, 1, 2 + headerInfo.rowSpan);
-            GenericRecord record;
-            GenericData genericData = AvroReader.makeGenericData();
-            DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema, genericData);
-            List<String> dump2 = new ArrayList<>();
-            try (
-                    DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter)
-            ) {
-                dataFileWriter.create(schema, NullOutputStream.INSTANCE);
-                while ( (record=excelToAvro.readRecord()) != null) {
-                    dump2.add(record.toString());
-                    dataFileWriter.append(record);
-                }
-            }
-            System.out.println(String.join("\n", dump2));
-            StringWriter sw2 = new StringWriter();
-            URL url2 = getClass().getResource("/reencoded.jsons");
-            assertNotNull(url2);
-            try (
-                    InputStream is2 = url2.openStream();
-                    Reader r2 = new InputStreamReader(is2)
-            ) {
-                IOUtils.copy(r2, sw2);
-            }
-            Assertions.assertLinesMatch(
-                    Arrays.asList(sw2.toString().split("\n")),
-                    dump2
-            );
+        File backAvroFile = TEST_OUTPUT_DIR.resolve("back_users.avro").toFile();
+        try (FileOutputStream fos = new FileOutputStream(backAvroFile)) {
+            ExcelToAvroConverter.convert(excelFile, fos, "Avro Data", 1, 2, schema);
         }
+        List<String> dump2 = AvroDescriptor.convert(backAvroFile);
+        System.out.println(String.join("\n", dump2));
+        StringWriter sw2 = new StringWriter();
+        URL url2 = getClass().getResource("/reencoded.jsons");
+        assertNotNull(url2);
+        try (
+                InputStream is2 = url2.openStream();
+                Reader r2 = new InputStreamReader(is2)
+        ) {
+            IOUtils.copy(r2, sw2);
+        }
+        Assertions.assertLinesMatch(
+                Arrays.asList(sw2.toString().split("\n")),
+                dump2
+        );
     }
 
     private void createSampleAvroFile(File file, Schema schema) throws IOException {

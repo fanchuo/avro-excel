@@ -2,10 +2,7 @@ package org.fanchuo.avroexcel.encoder;
 
 import org.apache.avro.Schema;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class ExcelCollectionParser<TSource, TTargetCollection, TIterable> {
     abstract TTargetCollection empty();
