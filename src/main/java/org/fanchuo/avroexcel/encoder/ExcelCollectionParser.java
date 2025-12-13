@@ -14,21 +14,18 @@ public abstract class ExcelCollectionParser<TSource, TTargetCollection, TIterabl
     abstract Iterable<TIterable> iterable(TSource source);
     abstract ExcelRecord unwrapRecord(TIterable iterable);
     abstract void aggregate(TTargetCollection collection, TIterable item, Object value);
+
     public  ParserResult parseCollection(TSource records, Schema schema) {
-        List<Schema> schemas = ParserTools.flatten(schema, x -> x.getType()== this.schemaType());
-        for (Schema s : schemas) {
-            ParserResult result = seekMatch(records, this.subSchema(s));
-            if (result.compatible) return result;
-        }
-        return ParserResult.NOT_MATCH;
+        return ParserTools.parse(records, schema, this.schemaType(), this::seekMatch);
     }
 
     private ParserResult seekMatch(TSource records, Schema schema) {
         TTargetCollection payload = this.empty();
+        Schema subSchema = this.subSchema(schema);
         for (TIterable iterable : this.iterable(records)) {
             ExcelRecord excelRecord = this.unwrapRecord(iterable);
-            if(excelRecord.candidates.containsKey(schema)) {
-                Object value = excelRecord.candidates.get(schema);
+            if(excelRecord.candidates.containsKey(subSchema)) {
+                Object value = excelRecord.candidates.get(subSchema);
                 this.aggregate(payload, iterable, value);
             } else return ParserResult.NOT_MATCH;
         }

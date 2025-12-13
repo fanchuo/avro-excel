@@ -5,21 +5,16 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ExcelRecordParser {
     public static ParserResult parseRecord(Map<String, ExcelRecord> subRecords, Schema schema) {
-        List<Schema> schemas = ParserTools.flatten(schema, x->x.getType()== Schema.Type.RECORD);
-        for (Schema s : schemas) {
-            GenericRecord payload = new GenericData.Record(s);
-            ParserResult parseAttempt = parseAttempt(new HashMap<>(subRecords), s, payload);
-            if (parseAttempt.compatible) return parseAttempt;
-        }
-        return ParserResult.NOT_MATCH;
+        return ParserTools.parse(subRecords, schema, Schema.Type.RECORD, ExcelRecordParser::parseAttempt);
     }
 
-    private static ParserResult parseAttempt(Map<String, ExcelRecord> subRecords, Schema recordSchema, GenericRecord payload) {
+    private static ParserResult parseAttempt(Map<String, ExcelRecord> r, Schema recordSchema) {
+        GenericRecord payload = new GenericData.Record(recordSchema);
+        Map<String, ExcelRecord> subRecords = new HashMap<>(r);
         for (Schema.Field field : recordSchema.getFields()) {
             String fieldName = field.name();
             Schema fieldSchema = field.schema();

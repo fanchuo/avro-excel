@@ -26,4 +26,19 @@ public class ParserTools {
             }
         }
     }
+
+    @FunctionalInterface
+    public interface ParseAttempt<T> {
+        ParserResult attempt(T structure, Schema s);
+    }
+
+    public static <T> ParserResult parse(T subRecords, Schema schema, Schema.Type sType, ParseAttempt<T> attempt) {
+        List<Schema> schemas = ParserTools.flatten(schema, x->x.getType() == sType);
+        for (Schema s : schemas) {
+            ParserResult parseAttempt = attempt.attempt(subRecords, s);
+            if (parseAttempt.compatible) return parseAttempt;
+        }
+        return ParserResult.NOT_MATCH;
+    }
+
 }
