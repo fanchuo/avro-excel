@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("jacoco")
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = "org.fanchuo.avroexcel"
@@ -35,5 +36,12 @@ tasks.jacocoTestReport {
     reports {
         xml.required.set(true)
         html.required.set(true)
+    }
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+        endWithNewline()
     }
 }
