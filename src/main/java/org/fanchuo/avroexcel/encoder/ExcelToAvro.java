@@ -6,6 +6,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
@@ -84,15 +85,25 @@ public class ExcelToAvro {
     for (HeaderInfo subHeader : headerInfo.subHeaders) {
       if ("*size".equals(subHeader.text)) {
         Cell c = sheet.getCell(colIdx, row);
-        if (c != null && c.getCellType() == CellType.NUMERIC) {
-          arraySize = (int) Math.round(c.getNumericCellValue());
+        if (c != null && c.getCellType() != CellType.BLANK) {
+          CellRangeAddress cellRangeAddress = sheet.getRangeAt(colIdx, row);
+          if (cellRangeAddress == null) {
+            arraySize = 1;
+          } else {
+            arraySize = cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow() + 1;
+          }
         }
       } else if ("*".equals(subHeader.text)) {
         arrayCol = new CollectionDescriptor(colIdx, subHeader);
       } else if ("#size".equals(subHeader.text)) {
         Cell c = sheet.getCell(colIdx, row);
-        if (c != null && c.getCellType() == CellType.NUMERIC) {
-          mapSize = (int) Math.round(c.getNumericCellValue());
+        if (c != null && c.getCellType() != CellType.BLANK) {
+          CellRangeAddress cellRangeAddress = sheet.getRangeAt(colIdx, row);
+          if (cellRangeAddress == null) {
+            mapSize = 1;
+          } else {
+            mapSize = cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow() + 1;
+          }
         }
       } else if ("#k".equals(subHeader.text)) {
         keyCol = new CollectionDescriptor(colIdx, subHeader);
@@ -164,7 +175,7 @@ public class ExcelToAvro {
     int rowSpan = 0;
     List<RecordGeometry> subList = new ArrayList<>();
     Map<Schema, Object> candidates = new HashMap<>();
-    for (int i = 0; i < collectionSize; i++) {
+    while (rowSpan < collectionSize) {
       ExcelRecord entry = visitObject(col, rowIdx, arraySchemas, headerInfo);
       subList.add(entry.recordGeometry);
       rowIdx += entry.recordGeometry.rowSpan;
@@ -206,7 +217,7 @@ public class ExcelToAvro {
     int rowIdx = row;
     int rowSpan = 0;
     List<RecordGeometry> subList = new ArrayList<>();
-    for (int i = 0; i < collectionSize; i++) {
+    while (rowSpan < collectionSize) {
       String k = sheet.getCell(keyCol, rowIdx).toString();
       ExcelRecord entry = visitObject(valCol, rowIdx, mapSchemas, headerInfo);
       subList.add(entry.recordGeometry);

@@ -28,6 +28,31 @@ public class ParserTools {
     }
   }
 
+  public static CollectionTypes collectTypes(Schema schema) {
+    CollectionTypes collectionTypes = new CollectionTypes();
+    collectTypes(Collections.singletonList(schema), collectionTypes);
+    return collectionTypes;
+  }
+
+  private static void collectTypes(List<Schema> schemas, CollectionTypes output) {
+    for (Schema schema : schemas) {
+      switch (schema.getType()) {
+        case UNION:
+          collectTypes(schema.getTypes(), output);
+          break;
+        case NULL:
+          output.nullable = true;
+          break;
+        case ARRAY:
+          output.listable = true;
+          break;
+        case MAP:
+          output.mappable = true;
+          break;
+      }
+    }
+  }
+
   @FunctionalInterface
   public interface ParseAttempt<T> {
     ParserResult attempt(T structure, Schema s);

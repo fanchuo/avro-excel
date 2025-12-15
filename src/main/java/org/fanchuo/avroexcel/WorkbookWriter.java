@@ -130,7 +130,8 @@ public class WorkbookWriter implements Closeable {
             offset,
             row,
             maxDepth,
-            zone);
+            zone,
+            0);
       }
       offset += subHeader.colSpan;
     }
@@ -148,7 +149,7 @@ public class WorkbookWriter implements Closeable {
     for (Object o : lst) {
       RecordGeometry subList = recordGeometry.subLists.get(i++);
       int end = offsetRow + subList.rowSpan;
-      writeObject(o, headerInfo, subList, col, offsetRow, end, zone);
+      writeObject(o, headerInfo, subList, col, offsetRow, end, zone, 0);
       offsetRow = end;
     }
   }
@@ -164,7 +165,15 @@ public class WorkbookWriter implements Closeable {
     int offset = col;
     for (HeaderInfo subHeader : headerInfo.subHeaders) {
       if ("*size".equals(subHeader.text)) {
-        writeObject(lst.size(), subHeader, RecordGeometry.ATOM, offset, row, maxDepth, zone);
+        writeObject(
+            !lst.isEmpty() ? "*" : null,
+            subHeader,
+            RecordGeometry.ATOM,
+            offset,
+            row,
+            maxDepth,
+            zone,
+            recordGeometry.rowSpan);
       } else if ("*".equals(subHeader.text)) {
         writeIterable(lst, subHeader, recordGeometry, offset, row, zone);
       }
@@ -190,7 +199,15 @@ public class WorkbookWriter implements Closeable {
     }
     for (HeaderInfo subHeader : headerInfo.subHeaders) {
       if ("#size".equals(subHeader.text)) {
-        writeObject(map.size(), subHeader, RecordGeometry.ATOM, offset, row, maxDepth, zone);
+        writeObject(
+            !map.isEmpty() ? "#" : null,
+            subHeader,
+            RecordGeometry.ATOM,
+            offset,
+            row,
+            maxDepth,
+            zone,
+            recordGeometry.rowSpan);
       } else if ("#k".equals(subHeader.text)) {
         writeIterable(keys, subHeader, recordGeometry, offset, row, zone);
       } else if ("#v".equals(subHeader.text)) {
@@ -207,7 +224,8 @@ public class WorkbookWriter implements Closeable {
       int col,
       int row,
       int maxDepth,
-      Zone zone) {
+      Zone zone,
+      int height) {
     if (value instanceof GenericRecord) {
       writeRecord((GenericRecord) value, headerInfo, recordGeometry, col, row, maxDepth, zone);
       return;
@@ -221,12 +239,6 @@ public class WorkbookWriter implements Closeable {
       return;
     }
     if (value == null) {
-      int lastRow = maxDepth - 1;
-      int lastCol = col - 1 + headerInfo.colSpan;
-      if (headerInfo.text != null && (col != lastCol || row != lastRow)) {
-        CellRangeAddress range = new CellRangeAddress(row, lastRow, col, lastCol);
-        sheet.addMergedRegion(range);
-      }
       return;
     }
     // case of a scalar value
@@ -251,8 +263,8 @@ public class WorkbookWriter implements Closeable {
     } else {
       c.setCellValue(String.valueOf(value));
     }
-    if (row + 1 != maxDepth) {
-      CellRangeAddress range = new CellRangeAddress(row, maxDepth - 1, offset, offset);
+    if (height > 1) {
+      CellRangeAddress range = new CellRangeAddress(row, row + height - 1, offset, offset);
       this.sheet.addMergedRegion(range);
     }
   }

@@ -39,16 +39,15 @@ Cell: AA7 = b
 Cell: B8 = Alyssa
 Cell: C8 = 256.0
 Cell: E8 = 2025-01-01T00:00:00Z
-Cell: F8 = 0.0
 Cell: M8 = ABC
-Cell: N8 = 2.0
+Cell: N8 = #
 Cell: O8 = a
 Cell: P8 = b
-Cell: T8 = 2.0
+Cell: T8 = *
 Cell: U8 = TRUE
 Cell: V8 = 1/2/25
 Cell: W8 = 1/25/25 19:45
-Cell: X8 = 2.0
+Cell: X8 = #
 Cell: Y8 = COMP2
 Cell: Z8 = Z
 Cell: AA8 = Y
@@ -60,7 +59,7 @@ Cell: AA9 = y
 Cell: U10 = FALSE
 Cell: V10 = 2/1/25
 Cell: W10 = 3/25/25 19:45
-Cell: X10 = 2.0
+Cell: X10 = #
 Cell: Y10 = comp
 Cell: Z10 = 123
 Cell: AA10 = 456
@@ -71,26 +70,26 @@ Cell: B12 = Ben
 Cell: C12 = 7.0
 Cell: D12 = red
 Cell: E12 = 2025-01-02T00:00:00Z
-Cell: F12 = 1.0
+Cell: F12 = *
 Cell: G12 = 123.4
-Cell: H12 = 2.0
+Cell: H12 = *
 Cell: I12 = azerty
 Cell: J12 = uiop
 Cell: M12 = DEF
-Cell: Q12 = 2.0
-Cell: R12 = 2.0
+Cell: Q12 = *
+Cell: R12 = *
 Cell: S12 = 1.0
 Cell: I13 = qsdfg
 Cell: J13 = hjklm
 Cell: S13 = 2.0
-Cell: R14 = 2.0
+Cell: R14 = *
 Cell: S14 = 3.0
 Cell: S15 = 4.0
 Cell: B16 = Charlie
 Cell: D16 = blue
 Cell: E16 = 2025-01-03T00:00:00Z
-Cell: F16 = 1.0
-Cell: H16 = 1.0
+Cell: F16 = *
+Cell: H16 = *
 Cell: I16 = xx
 Cell: J16 = yy
 Cell: K16 = GHI
@@ -131,36 +130,11 @@ Z6:AA6
 X5:AA5
 U4:AA4
 T3:AA3
-B8:B11
-C8:C11
-D8:D11
-E8:E11
-F8:F11
-H8:J11
-M8:M11
-N8:N11
-Q8:S11
+N8:N9
 T8:T11
-U8:U9
-V8:V9
-W8:W9
 X8:X9
-U10:U11
-V10:V11
-W10:W11
 X10:X11
-B12:B15
-C12:C15
-D12:D15
-E12:E15
-F12:F15
-H12:H15
-M12:M15
-N12:P15
+H12:H13
 Q12:Q15
 R12:R13
 R14:R15
-T12:AA15
-N16:P16
-Q16:S16
-T16:AA16
