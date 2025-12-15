@@ -63,6 +63,18 @@ public class ExcelToAvro {
     return new ExcelRecord(excelRecords, RecordGeometry.ATOM);
   }
 
+  private int extractCollectionSize(int col, int row) {
+    Cell c = sheet.getCell(col, row);
+    if (c != null && c.getCellType() != CellType.BLANK) {
+      CellRangeAddress cellRangeAddress = sheet.getRangeAt(col, row);
+      if (cellRangeAddress == null) {
+        return 1;
+      }
+      return cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow() + 1;
+    }
+    return -1;
+  }
+
   private ExcelRecord visitObject(int col, int row, List<Schema> schemas, HeaderInfo headerInfo) {
     LOGGER.debug(
         "visitObject : col: {}, row: {}, schemas: {}, headerInfo: {}",
@@ -84,27 +96,11 @@ public class ExcelToAvro {
         ParserTools.flatten(schemas, x -> x.getType() == Schema.Type.RECORD);
     for (HeaderInfo subHeader : headerInfo.subHeaders) {
       if ("*size".equals(subHeader.text)) {
-        Cell c = sheet.getCell(colIdx, row);
-        if (c != null && c.getCellType() != CellType.BLANK) {
-          CellRangeAddress cellRangeAddress = sheet.getRangeAt(colIdx, row);
-          if (cellRangeAddress == null) {
-            arraySize = 1;
-          } else {
-            arraySize = cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow() + 1;
-          }
-        }
+        arraySize = extractCollectionSize(colIdx, row);
       } else if ("*".equals(subHeader.text)) {
         arrayCol = new CollectionDescriptor(colIdx, subHeader);
       } else if ("#size".equals(subHeader.text)) {
-        Cell c = sheet.getCell(colIdx, row);
-        if (c != null && c.getCellType() != CellType.BLANK) {
-          CellRangeAddress cellRangeAddress = sheet.getRangeAt(colIdx, row);
-          if (cellRangeAddress == null) {
-            mapSize = 1;
-          } else {
-            mapSize = cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow() + 1;
-          }
-        }
+        mapSize = extractCollectionSize(colIdx, row);
       } else if ("#k".equals(subHeader.text)) {
         keyCol = new CollectionDescriptor(colIdx, subHeader);
       } else if ("#v".equals(subHeader.text)) {
