@@ -31,7 +31,7 @@ public class ExcelToAvroConverter {
     GenericRecord record;
     GenericData genericData = AvroReader.makeGenericData();
     DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema, genericData);
-    try (DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter); ) {
+    try (DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter)) {
       dataFileWriter.create(schema, avroOutputStream);
       while ((record = excelToAvro.readRecord()) != null) {
         dataFileWriter.append(record);

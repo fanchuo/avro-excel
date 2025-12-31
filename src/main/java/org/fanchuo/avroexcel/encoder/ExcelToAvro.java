@@ -55,12 +55,14 @@ public class ExcelToAvro {
     LOGGER.debug("visitScalar : col: {}, row: {}, schemas: {}", col, row, schemas);
     Cell c = sheet.getCell(col, row);
     Map<Schema, Object> excelRecords = new HashMap<>();
+    Map<Schema, String> failure = new HashMap<>();
     for (Schema schema : schemas) {
       ExcelFieldParser.TypeParser typeParser = this.excelFieldParser.checkCompatible(schema, c);
-      if (typeParser.compatible) excelRecords.put(schema, typeParser.value);
+      if (typeParser.isCompatible()) excelRecords.put(schema, typeParser.value);
+      else failure.put(schema, typeParser.errorMessage);
     }
     LOGGER.debug("return scalar - {}", excelRecords);
-    return new ExcelRecord(excelRecords, RecordGeometry.ATOM);
+    return new ExcelRecord(excelRecords, failure, RecordGeometry.ATOM);
   }
 
   private int extractCollectionSize(int col, int row) {
@@ -146,7 +148,7 @@ public class ExcelToAvro {
       }
     }
     LOGGER.debug("return record - {}", candidates);
-    return new ExcelRecord(candidates, new RecordGeometry(rowSpan, map, null));
+    return new ExcelRecord(candidates, null, new RecordGeometry(rowSpan, map, null));
   }
 
   private ExcelRecord visitArray(
@@ -186,7 +188,7 @@ public class ExcelToAvro {
       }
     }
     LOGGER.debug("return array - {}", candidates);
-    return new ExcelRecord(candidates, new RecordGeometry(rowSpan, null, subList));
+    return new ExcelRecord(candidates, null, new RecordGeometry(rowSpan, null, subList));
   }
 
   private ExcelRecord visitMap(
@@ -229,6 +231,6 @@ public class ExcelToAvro {
       }
     }
     LOGGER.debug("return map - {}", candidates);
-    return new ExcelRecord(candidates, new RecordGeometry(rowSpan, null, subList));
+    return new ExcelRecord(candidates, null, new RecordGeometry(rowSpan, null, subList));
   }
 }

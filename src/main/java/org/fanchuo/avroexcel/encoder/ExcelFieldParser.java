@@ -13,10 +13,14 @@ import org.apache.poi.ss.usermodel.CellType;
 
 public class ExcelFieldParser {
   public abstract static class TypeParser {
-    public boolean compatible;
+    public String errorMessage;
     public Object value;
 
     public abstract void analyze(Schema schema, Cell cell);
+
+    public boolean isCompatible() {
+      return errorMessage == null;
+    }
   }
 
   static class EnumExcelFieldParser extends TypeParser {
@@ -25,9 +29,13 @@ public class ExcelFieldParser {
       if (cell.getCellType() == CellType.STRING) {
         String str = cell.getStringCellValue();
         if (schema.getEnumSymbols().contains(str)) {
-          this.compatible = true;
+          this.errorMessage = null;
           this.value = str;
+        } else {
+          this.errorMessage = String.format("'%s' is not one of %s", str, schema.getEnumSymbols());
         }
+      } else {
+        this.errorMessage = String.format("Cell type '%s' is not STRING", cell.getCellType());
       }
     }
   }
@@ -35,8 +43,12 @@ public class ExcelFieldParser {
   static class StringExcelFieldParser extends TypeParser {
     @Override
     public void analyze(Schema schema, Cell cell) {
-      this.compatible = cell.getCellType() == CellType.STRING;
-      this.value = cell.getStringCellValue();
+      if (cell.getCellType() == CellType.STRING) {
+        this.errorMessage = null;
+        this.value = cell.getStringCellValue();
+      } else {
+        this.errorMessage = String.format("Cell type '%s' is not STRING", cell.getCellType());
+      }
     }
   }
 
@@ -75,12 +87,17 @@ public class ExcelFieldParser {
           schema.getLogicalType() == null ? null : schema.getLogicalType().getName();
       if (logicalType != null && LOCALDATE_LOGICAL_TYPES.contains(logicalType)) {
         if (cell.getCellType() == CellType.NUMERIC && isDate(cell)) {
-          this.compatible = true;
+          this.errorMessage = null;
           if ("date".equals(logicalType))
             this.value = cell.getLocalDateTimeCellValue().toLocalDate();
           else if (logicalType.startsWith("time-"))
             this.value = cell.getLocalDateTimeCellValue().toLocalTime();
           else this.value = cell.getLocalDateTimeCellValue();
+        } else {
+          this.errorMessage =
+              String.format(
+                  "Not a date cell type (type: %s, format: %s)",
+                  cell.getCellType(), cell.getCellStyle().getDataFormat());
         }
       } else if (TIMESTAMP_LOGICAL_TYPES.contains(logicalType)) {
         if (cell.getCellType() == CellType.STRING) {
@@ -89,13 +106,19 @@ public class ExcelFieldParser {
           TemporalAccessor temporalAccessor =
               DateTimeFormatter.ISO_INSTANT.parseUnresolved(str, position);
           if (position.getErrorIndex() < 0) {
-            this.compatible = true;
+            this.errorMessage = null;
             this.value = Instant.from(temporalAccessor);
+          } else {
+            this.errorMessage = String.format("Cell format '%s' is not ISO8601 format", str);
           }
+        } else {
+          this.errorMessage = String.format("Cell type '%s' is not STRING", cell.getCellType());
         }
       } else if (cell.getCellType() == CellType.NUMERIC) {
-        this.compatible = true;
+        this.errorMessage = null;
         this.value = getIntValue(cell.getNumericCellValue());
+      } else {
+        this.errorMessage = String.format("Cell type '%s' is not NUMERIC", cell.getCellType());
       }
     }
   }
@@ -120,8 +143,10 @@ public class ExcelFieldParser {
     @Override
     public void analyze(Schema schema, Cell cell) {
       if (cell.getCellType() == CellType.NUMERIC) {
-        this.compatible = true;
+        this.errorMessage = null;
         this.value = getFloatValue(cell.getNumericCellValue());
+      } else {
+        this.errorMessage = String.format("Cell type '%s' is not NUMERIC", cell.getCellType());
       }
     }
   }
@@ -144,8 +169,10 @@ public class ExcelFieldParser {
     @Override
     public void analyze(Schema schema, Cell cell) {
       if (cell.getCellType() == CellType.BOOLEAN) {
-        this.compatible = true;
+        this.errorMessage = null;
         this.value = cell.getBooleanCellValue();
+      } else {
+        this.errorMessage = String.format("Cell type '%s' is not NUMERIC", cell.getCellType());
       }
     }
   }
@@ -170,14 +197,14 @@ public class ExcelFieldParser {
 
   public TypeParser checkCompatible(Schema s, Cell cell) {
     if (cell == null || cell.getCellType() == CellType.BLANK) {
-      NULL_PARSER.compatible = s.isNullable();
+      NULL_PARSER.errorMessage = s.isNullable() ? null : "Cell is not BLANK";
       return NULL_PARSER;
     }
     List<Schema> schemas = ParserTools.flatten(s, x -> registry.containsKey(x.getType()));
     TypeParser stringTypeParser = null;
     for (Schema schema : schemas) {
       TypeParser typeParser = registry.get(schema.getType());
-      typeParser.compatible = false;
+      typeParser.errorMessage = "Parsing failed";
       typeParser.value = null;
       typeParser.analyze(schema, cell);
       if (schema.getType() == Schema.Type.STRING) {
