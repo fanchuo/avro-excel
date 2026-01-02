@@ -25,7 +25,10 @@ public class ExcelRecordParser {
         if (subRecord.candidates.containsKey(fieldSchema)) {
           payload.put(fieldName, subRecord.candidates.get(fieldSchema));
         } else {
-          return ParserResult.NOT_MATCH;
+          String errorMessage = subRecord.failures.get(fieldSchema);
+          return new ParserResult(
+              String.format("Failed to match schema %s, because %s", fieldSchema, errorMessage),
+              null);
         }
       } else {
         // 2. je ne trouve pas de valeur correspondante, le schema doit être nullable
@@ -37,11 +40,16 @@ public class ExcelRecordParser {
         } else if (collectionTypes.mappable) {
           payload.put(fieldName, new HashMap<>());
         } else {
-          return ParserResult.NOT_MATCH;
+          return new ParserResult(
+              String.format("Failed to match schema %s, because not nullable", fieldSchema), null);
         }
       }
     }
-    if (subRecords.isEmpty()) return new ParserResult(true, payload);
-    return ParserResult.NOT_MATCH;
+    if (subRecords.isEmpty()) return new ParserResult(null, payload);
+    return new ParserResult(
+        String.format(
+            "Failed to match schema %s, because of additional fields defined %s",
+            recordSchema, subRecords.keySet()),
+        null);
   }
 }

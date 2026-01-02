@@ -61,10 +61,12 @@ public class ParserTools {
   public static <T> ParserResult parse(
       T subRecords, Schema schema, Schema.Type sType, ParseAttempt<T> attempt) {
     List<Schema> schemas = ParserTools.flatten(schema, x -> x.getType() == sType);
+    String errorMessage = String.format("No schema of type %s", sType);
     for (Schema s : schemas) {
       ParserResult parseAttempt = attempt.attempt(subRecords, s);
-      if (parseAttempt.compatible) return parseAttempt;
+      if (parseAttempt.errorMessage == null) return parseAttempt;
+      errorMessage = parseAttempt.errorMessage;
     }
-    return ParserResult.NOT_MATCH;
+    return new ParserResult(errorMessage, null);
   }
 }

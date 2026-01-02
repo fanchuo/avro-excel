@@ -28,9 +28,13 @@ public abstract class ExcelCollectionParser<TSource, TTargetCollection, TIterabl
       if (excelRecord.candidates.containsKey(subSchema)) {
         Object value = excelRecord.candidates.get(subSchema);
         this.aggregate(payload, iterable, value);
-      } else return ParserResult.NOT_MATCH;
+      } else {
+        String errorMessage = excelRecord.failures.get(subSchema);
+        return new ParserResult(
+            String.format("Failed to match schema %s, because %s", subSchema, errorMessage), null);
+      }
     }
-    return new ParserResult(true, payload);
+    return new ParserResult(null, payload);
   }
 
   public static final ExcelCollectionParser<List<ExcelRecord>, List<Object>, ExcelRecord>

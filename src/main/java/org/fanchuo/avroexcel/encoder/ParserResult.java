@@ -1,12 +1,11 @@
 package org.fanchuo.avroexcel.encoder;
 
 public class ParserResult {
-  public static final ParserResult NOT_MATCH = new ParserResult(false, null);
-  final boolean compatible;
+  final String errorMessage;
   final Object payload;
 
-  ParserResult(boolean compatible, Object payload) {
-    this.compatible = compatible;
+  ParserResult(String errorMessage, Object payload) {
+    this.errorMessage = errorMessage;
     this.payload = payload;
   }
 }

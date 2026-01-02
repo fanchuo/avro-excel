@@ -134,6 +134,7 @@ public class ExcelToAvro {
   private ExcelRecord visitRecord(Map<String, ExcelRecord> subRecords, List<Schema> schemas) {
     LOGGER.debug("visitRecord : subRecords: {}, schemas: {}", subRecords, schemas);
     Map<Schema, Object> candidates = new HashMap<>();
+    Map<Schema, String> failures = new HashMap<>();
     int rowSpan = 0;
     Map<String, RecordGeometry> map = new HashMap<>();
     for (Map.Entry<String, ExcelRecord> entry : subRecords.entrySet()) {
@@ -142,13 +143,14 @@ public class ExcelToAvro {
     }
     for (Schema schema : schemas) {
       ParserResult recordParser = ExcelRecordParser.parseRecord(subRecords, schema);
-      if (recordParser.compatible) {
-        Object record = recordParser.payload;
-        candidates.put(schema, record);
+      if (recordParser.errorMessage == null) {
+        candidates.put(schema, recordParser.payload);
+      } else {
+        failures.put(schema, recordParser.errorMessage);
       }
     }
     LOGGER.debug("return record - {}", candidates);
-    return new ExcelRecord(candidates, null, new RecordGeometry(rowSpan, map, null));
+    return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, map, null));
   }
 
   private ExcelRecord visitArray(
@@ -173,6 +175,7 @@ public class ExcelToAvro {
     int rowSpan = 0;
     List<RecordGeometry> subList = new ArrayList<>();
     Map<Schema, Object> candidates = new HashMap<>();
+    Map<Schema, String> failures = new HashMap<>();
     while (rowSpan < collectionSize) {
       ExcelRecord entry = visitObject(col, rowIdx, arraySchemas, headerInfo);
       subList.add(entry.recordGeometry);
@@ -183,12 +186,14 @@ public class ExcelToAvro {
     for (Schema schema : schemas) {
       ParserResult arrayParser =
           ExcelCollectionParser.ARRAY_PARSER.parseCollection(records, schema);
-      if (arrayParser.compatible) {
+      if (arrayParser.errorMessage == null) {
         candidates.put(schema, arrayParser.payload);
+      } else {
+        failures.put(schema, arrayParser.errorMessage);
       }
     }
     LOGGER.debug("return array - {}", candidates);
-    return new ExcelRecord(candidates, null, new RecordGeometry(rowSpan, null, subList));
+    return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, null, subList));
   }
 
   private ExcelRecord visitMap(
@@ -224,13 +229,16 @@ public class ExcelToAvro {
       records.put(k, entry);
     }
     Map<Schema, Object> candidates = new HashMap<>();
+    Map<Schema, String> failures = new HashMap<>();
     for (Schema schema : schemas) {
       ParserResult arrayParser = ExcelCollectionParser.MAP_PARSER.parseCollection(records, schema);
-      if (arrayParser.compatible) {
+      if (arrayParser.errorMessage == null) {
         candidates.put(schema, arrayParser.payload);
+      } else {
+        failures.put(schema, arrayParser.errorMessage);
       }
     }
     LOGGER.debug("return map - {}", candidates);
-    return new ExcelRecord(candidates, null, new RecordGeometry(rowSpan, null, subList));
+    return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, null, subList));
   }
 }
