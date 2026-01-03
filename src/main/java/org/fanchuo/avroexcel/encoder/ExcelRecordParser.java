@@ -6,6 +6,8 @@ import java.util.Map;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
+import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
 public class ExcelRecordParser {
   public static ParserResult parseRecord(Map<String, ExcelRecord> subRecords, Schema schema) {
@@ -25,10 +27,11 @@ public class ExcelRecordParser {
         if (subRecord.candidates.containsKey(fieldSchema)) {
           payload.put(fieldName, subRecord.candidates.get(fieldSchema));
         } else {
-          String errorMessage = subRecord.failures.get(fieldSchema);
-          return new ParserResult(
-              String.format("Failed to match schema %s, because %s", fieldSchema, errorMessage),
-              null);
+          CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
+          compositeErrorMessage.add(subRecord.failures.get(fieldSchema));
+          compositeErrorMessage.add(
+              new FormatErrorMessage("Failed to match schema %s", fieldSchema));
+          return new ParserResult(compositeErrorMessage, null);
         }
       } else {
         // 2. je ne trouve pas de valeur correspondante, le schema doit être nullable
@@ -41,13 +44,15 @@ public class ExcelRecordParser {
           payload.put(fieldName, new HashMap<>());
         } else {
           return new ParserResult(
-              String.format("Failed to match schema %s, because not nullable", fieldSchema), null);
+              new FormatErrorMessage(
+                  "Failed to match schema %s, because not nullable", fieldSchema),
+              null);
         }
       }
     }
     if (subRecords.isEmpty()) return new ParserResult(null, payload);
     return new ParserResult(
-        String.format(
+        new FormatErrorMessage(
             "Failed to match schema %s, because of additional fields defined %s",
             recordSchema, subRecords.keySet()),
         null);

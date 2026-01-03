@@ -10,10 +10,12 @@ import org.apache.avro.Schema;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.fanchuo.avroexcel.excelutil.ErrorMessage;
+import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
 public class ExcelFieldParser {
   public abstract static class TypeParser {
-    public String errorMessage;
+    public ErrorMessage errorMessage;
     public Object value;
 
     public abstract void analyze(Schema schema, Cell cell);
@@ -32,10 +34,12 @@ public class ExcelFieldParser {
           this.errorMessage = null;
           this.value = str;
         } else {
-          this.errorMessage = String.format("'%s' is not one of %s", str, schema.getEnumSymbols());
+          this.errorMessage =
+              new FormatErrorMessage("'%s' is not one of %s", str, schema.getEnumSymbols());
         }
       } else {
-        this.errorMessage = String.format("Cell type '%s' is not STRING", cell.getCellType());
+        this.errorMessage =
+            new FormatErrorMessage("Cell type '%s' is not STRING", cell.getCellType());
       }
     }
   }
@@ -47,7 +51,8 @@ public class ExcelFieldParser {
         this.errorMessage = null;
         this.value = cell.getStringCellValue();
       } else {
-        this.errorMessage = String.format("Cell type '%s' is not STRING", cell.getCellType());
+        this.errorMessage =
+            new FormatErrorMessage("Cell type '%s' is not STRING", cell.getCellType());
       }
     }
   }
@@ -95,7 +100,7 @@ public class ExcelFieldParser {
           else this.value = cell.getLocalDateTimeCellValue();
         } else {
           this.errorMessage =
-              String.format(
+              new FormatErrorMessage(
                   "Not a date cell type (type: %s, format: %s)",
                   cell.getCellType(), cell.getCellStyle().getDataFormat());
         }
@@ -109,16 +114,19 @@ public class ExcelFieldParser {
             this.errorMessage = null;
             this.value = Instant.from(temporalAccessor);
           } else {
-            this.errorMessage = String.format("Cell format '%s' is not ISO8601 format", str);
+            this.errorMessage =
+                new FormatErrorMessage("Cell format '%s' is not ISO8601 format", str);
           }
         } else {
-          this.errorMessage = String.format("Cell type '%s' is not STRING", cell.getCellType());
+          this.errorMessage =
+              new FormatErrorMessage("Cell type '%s' is not STRING", cell.getCellType());
         }
       } else if (cell.getCellType() == CellType.NUMERIC) {
         this.errorMessage = null;
         this.value = getIntValue(cell.getNumericCellValue());
       } else {
-        this.errorMessage = String.format("Cell type '%s' is not NUMERIC", cell.getCellType());
+        this.errorMessage =
+            new FormatErrorMessage("Cell type '%s' is not NUMERIC", cell.getCellType());
       }
     }
   }
@@ -146,7 +154,8 @@ public class ExcelFieldParser {
         this.errorMessage = null;
         this.value = getFloatValue(cell.getNumericCellValue());
       } else {
-        this.errorMessage = String.format("Cell type '%s' is not NUMERIC", cell.getCellType());
+        this.errorMessage =
+            new FormatErrorMessage("Cell type '%s' is not NUMERIC", cell.getCellType());
       }
     }
   }
@@ -172,7 +181,8 @@ public class ExcelFieldParser {
         this.errorMessage = null;
         this.value = cell.getBooleanCellValue();
       } else {
-        this.errorMessage = String.format("Cell type '%s' is not NUMERIC", cell.getCellType());
+        this.errorMessage =
+            new FormatErrorMessage("Cell type '%s' is not NUMERIC", cell.getCellType());
       }
     }
   }
@@ -197,14 +207,15 @@ public class ExcelFieldParser {
 
   public TypeParser checkCompatible(Schema s, Cell cell) {
     if (cell == null || cell.getCellType() == CellType.BLANK) {
-      NULL_PARSER.errorMessage = s.isNullable() ? null : "Cell is not BLANK";
+      NULL_PARSER.errorMessage =
+          s.isNullable() ? null : new FormatErrorMessage("Cell is not BLANK");
       return NULL_PARSER;
     }
     List<Schema> schemas = ParserTools.flatten(s, x -> registry.containsKey(x.getType()));
     TypeParser stringTypeParser = null;
     for (Schema schema : schemas) {
       TypeParser typeParser = registry.get(schema.getType());
-      typeParser.errorMessage = "Parsing failed";
+      typeParser.errorMessage = new FormatErrorMessage("Parsing failed");
       typeParser.value = null;
       typeParser.analyze(schema, cell);
       if (schema.getType() == Schema.Type.STRING) {

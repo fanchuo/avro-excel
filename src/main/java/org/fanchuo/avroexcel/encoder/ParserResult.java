@@ -1,10 +1,12 @@
 package org.fanchuo.avroexcel.encoder;
 
+import org.fanchuo.avroexcel.excelutil.ErrorMessage;
+
 public class ParserResult {
-  final String errorMessage;
+  final ErrorMessage errorMessage;
   final Object payload;
 
-  ParserResult(String errorMessage, Object payload) {
+  ParserResult(ErrorMessage errorMessage, Object payload) {
     this.errorMessage = errorMessage;
     this.payload = payload;
   }

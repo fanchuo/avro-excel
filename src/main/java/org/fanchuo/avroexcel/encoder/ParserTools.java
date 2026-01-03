@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import org.apache.avro.Schema;
+import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
+import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
 public class ParserTools {
   public static List<Schema> flatten(Schema schema, Predicate<Schema> predicate) {
@@ -61,12 +63,14 @@ public class ParserTools {
   public static <T> ParserResult parse(
       T subRecords, Schema schema, Schema.Type sType, ParseAttempt<T> attempt) {
     List<Schema> schemas = ParserTools.flatten(schema, x -> x.getType() == sType);
-    String errorMessage = String.format("No schema of type %s", sType);
+    CompositeErrorMessage errorMessage = new CompositeErrorMessage();
     for (Schema s : schemas) {
       ParserResult parseAttempt = attempt.attempt(subRecords, s);
       if (parseAttempt.errorMessage == null) return parseAttempt;
-      errorMessage = parseAttempt.errorMessage;
+      errorMessage.add(parseAttempt.errorMessage);
     }
+    if (errorMessage.size() == 0)
+      return new ParserResult(new FormatErrorMessage("No schema of type %s", sType), null);
     return new ParserResult(errorMessage, null);
   }
 }

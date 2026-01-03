@@ -7,6 +7,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.fanchuo.avroexcel.excelutil.ErrorMessage;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
@@ -55,7 +56,7 @@ public class ExcelToAvro {
     LOGGER.debug("visitScalar : col: {}, row: {}, schemas: {}", col, row, schemas);
     Cell c = sheet.getCell(col, row);
     Map<Schema, Object> excelRecords = new HashMap<>();
-    Map<Schema, String> failure = new HashMap<>();
+    Map<Schema, ErrorMessage> failure = new HashMap<>();
     for (Schema schema : schemas) {
       ExcelFieldParser.TypeParser typeParser = this.excelFieldParser.checkCompatible(schema, c);
       if (typeParser.isCompatible()) excelRecords.put(schema, typeParser.value);
@@ -134,7 +135,7 @@ public class ExcelToAvro {
   private ExcelRecord visitRecord(Map<String, ExcelRecord> subRecords, List<Schema> schemas) {
     LOGGER.debug("visitRecord : subRecords: {}, schemas: {}", subRecords, schemas);
     Map<Schema, Object> candidates = new HashMap<>();
-    Map<Schema, String> failures = new HashMap<>();
+    Map<Schema, ErrorMessage> failures = new HashMap<>();
     int rowSpan = 0;
     Map<String, RecordGeometry> map = new HashMap<>();
     for (Map.Entry<String, ExcelRecord> entry : subRecords.entrySet()) {
@@ -175,7 +176,7 @@ public class ExcelToAvro {
     int rowSpan = 0;
     List<RecordGeometry> subList = new ArrayList<>();
     Map<Schema, Object> candidates = new HashMap<>();
-    Map<Schema, String> failures = new HashMap<>();
+    Map<Schema, ErrorMessage> failures = new HashMap<>();
     while (rowSpan < collectionSize) {
       ExcelRecord entry = visitObject(col, rowIdx, arraySchemas, headerInfo);
       subList.add(entry.recordGeometry);
@@ -229,7 +230,7 @@ public class ExcelToAvro {
       records.put(k, entry);
     }
     Map<Schema, Object> candidates = new HashMap<>();
-    Map<Schema, String> failures = new HashMap<>();
+    Map<Schema, ErrorMessage> failures = new HashMap<>();
     for (Schema schema : schemas) {
       ParserResult arrayParser = ExcelCollectionParser.MAP_PARSER.parseCollection(records, schema);
       if (arrayParser.errorMessage == null) {

@@ -2,6 +2,8 @@ package org.fanchuo.avroexcel.encoder;
 
 import java.util.*;
 import org.apache.avro.Schema;
+import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
+import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
 public abstract class ExcelCollectionParser<TSource, TTargetCollection, TIterable> {
   abstract TTargetCollection empty();
@@ -29,9 +31,10 @@ public abstract class ExcelCollectionParser<TSource, TTargetCollection, TIterabl
         Object value = excelRecord.candidates.get(subSchema);
         this.aggregate(payload, iterable, value);
       } else {
-        String errorMessage = excelRecord.failures.get(subSchema);
-        return new ParserResult(
-            String.format("Failed to match schema %s, because %s", subSchema, errorMessage), null);
+        CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
+        compositeErrorMessage.add(excelRecord.failures.get(subSchema));
+        compositeErrorMessage.add(new FormatErrorMessage("Failed to match schema %s", subSchema));
+        return new ParserResult(compositeErrorMessage, null);
       }
     }
     return new ParserResult(null, payload);
