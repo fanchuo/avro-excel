@@ -6,9 +6,12 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.ErrorMessage;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
+import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
 import org.slf4j.Logger;
@@ -46,7 +49,18 @@ public class ExcelToAvro {
   public GenericRecord readRecord() {
     ExcelRecord excelRecords =
         visitObject(this.col, this.row, Collections.singletonList(this.schema), this.headerInfo);
-    if (excelRecords.candidates.isEmpty()) return null;
+    if (excelRecords.candidates.isEmpty()) {
+      CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
+      for (Map.Entry<Schema, ErrorMessage> entry : excelRecords.failures.entrySet()) {
+        compositeErrorMessage.add(
+            new FormatErrorMessage("Cannot match schema %s", null, entry.getKey()));
+        compositeErrorMessage.add(entry.getValue());
+      }
+      StringBuilder sb = new StringBuilder();
+      compositeErrorMessage.dump("", sb);
+      LOGGER.error(sb.toString());
+      return null;
+    }
     GenericRecord toReturn = (GenericRecord) excelRecords.candidates.values().iterator().next();
     this.row += excelRecords.recordGeometry.rowSpan;
     return toReturn;
@@ -58,7 +72,8 @@ public class ExcelToAvro {
     Map<Schema, Object> excelRecords = new HashMap<>();
     Map<Schema, ErrorMessage> failure = new HashMap<>();
     for (Schema schema : schemas) {
-      ExcelFieldParser.TypeParser typeParser = this.excelFieldParser.checkCompatible(schema, c);
+      ExcelFieldParser.TypeParser typeParser =
+          this.excelFieldParser.checkCompatible(schema, c, new CellAddress(row, col));
       if (typeParser.isCompatible()) excelRecords.put(schema, typeParser.value);
       else failure.put(schema, typeParser.errorMessage);
     }
@@ -129,10 +144,11 @@ public class ExcelToAvro {
     if (mapSize != -1 && mapCol != null && keyCol != null) {
       return visitMap(row, mapSize, schemas, keyCol, mapCol);
     }
-    return visitRecord(subRecords, schemas);
+    return visitRecord(subRecords, schemas, new CellAddress(row, col));
   }
 
-  private ExcelRecord visitRecord(Map<String, ExcelRecord> subRecords, List<Schema> schemas) {
+  private ExcelRecord visitRecord(
+      Map<String, ExcelRecord> subRecords, List<Schema> schemas, CellAddress address) {
     LOGGER.debug("visitRecord : subRecords: {}, schemas: {}", subRecords, schemas);
     Map<Schema, Object> candidates = new HashMap<>();
     Map<Schema, ErrorMessage> failures = new HashMap<>();
@@ -143,7 +159,7 @@ public class ExcelToAvro {
       map.put(entry.getKey(), entry.getValue().recordGeometry);
     }
     for (Schema schema : schemas) {
-      ParserResult recordParser = ExcelRecordParser.parseRecord(subRecords, schema);
+      ParserResult recordParser = ExcelRecordParser.parseRecord(subRecords, schema, address);
       if (recordParser.errorMessage == null) {
         candidates.put(schema, recordParser.payload);
       } else {
@@ -170,6 +186,7 @@ public class ExcelToAvro {
             .map(Schema::getElementType)
             .collect(Collectors.toList());
     final int col = collectionDescriptor.col;
+    CellAddress address = new CellAddress(row, col);
     final HeaderInfo headerInfo = collectionDescriptor.headerInfo;
     List<ExcelRecord> records = new ArrayList<>();
     int rowIdx = row;
@@ -186,7 +203,7 @@ public class ExcelToAvro {
     }
     for (Schema schema : schemas) {
       ParserResult arrayParser =
-          ExcelCollectionParser.ARRAY_PARSER.parseCollection(records, schema);
+          ExcelCollectionParser.ARRAY_PARSER.parseCollection(records, schema, address);
       if (arrayParser.errorMessage == null) {
         candidates.put(schema, arrayParser.payload);
       } else {
@@ -216,6 +233,7 @@ public class ExcelToAvro {
             .collect(Collectors.toList());
     final int keyCol = keyDesc.col;
     final int valCol = valueDesc.col;
+    CellAddress address = new CellAddress(row, valCol);
     final HeaderInfo headerInfo = valueDesc.headerInfo;
     Map<String, ExcelRecord> records = new HashMap<>();
     int rowIdx = row;
@@ -232,7 +250,8 @@ public class ExcelToAvro {
     Map<Schema, Object> candidates = new HashMap<>();
     Map<Schema, ErrorMessage> failures = new HashMap<>();
     for (Schema schema : schemas) {
-      ParserResult arrayParser = ExcelCollectionParser.MAP_PARSER.parseCollection(records, schema);
+      ParserResult arrayParser =
+          ExcelCollectionParser.MAP_PARSER.parseCollection(records, schema, address);
       if (arrayParser.errorMessage == null) {
         candidates.put(schema, arrayParser.payload);
       } else {

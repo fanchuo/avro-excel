@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import org.apache.avro.Schema;
+import org.apache.poi.ss.util.CellAddress;
 import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
@@ -57,20 +58,25 @@ public class ParserTools {
 
   @FunctionalInterface
   public interface ParseAttempt<T> {
-    ParserResult attempt(T structure, Schema s);
+    ParserResult attempt(T structure, Schema s, CellAddress address);
   }
 
   public static <T> ParserResult parse(
-      T subRecords, Schema schema, Schema.Type sType, ParseAttempt<T> attempt) {
+      T subRecords,
+      Schema schema,
+      Schema.Type sType,
+      ParseAttempt<T> attempt,
+      CellAddress address) {
     List<Schema> schemas = ParserTools.flatten(schema, x -> x.getType() == sType);
     CompositeErrorMessage errorMessage = new CompositeErrorMessage();
     for (Schema s : schemas) {
-      ParserResult parseAttempt = attempt.attempt(subRecords, s);
+      ParserResult parseAttempt = attempt.attempt(subRecords, s, address);
       if (parseAttempt.errorMessage == null) return parseAttempt;
+      errorMessage.add(new FormatErrorMessage("Cannot match schema %s", null, s));
       errorMessage.add(parseAttempt.errorMessage);
     }
     if (errorMessage.size() == 0)
-      return new ParserResult(new FormatErrorMessage("No schema of type %s", sType), null);
+      return new ParserResult(new FormatErrorMessage("No schema of type %s", null, sType), null);
     return new ParserResult(errorMessage, null);
   }
 }

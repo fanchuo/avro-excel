@@ -6,16 +6,19 @@ import java.util.Map;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.poi.ss.util.CellAddress;
 import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
 public class ExcelRecordParser {
-  public static ParserResult parseRecord(Map<String, ExcelRecord> subRecords, Schema schema) {
+  public static ParserResult parseRecord(
+      Map<String, ExcelRecord> subRecords, Schema schema, CellAddress address) {
     return ParserTools.parse(
-        subRecords, schema, Schema.Type.RECORD, ExcelRecordParser::parseAttempt);
+        subRecords, schema, Schema.Type.RECORD, ExcelRecordParser::parseAttempt, address);
   }
 
-  private static ParserResult parseAttempt(Map<String, ExcelRecord> r, Schema recordSchema) {
+  private static ParserResult parseAttempt(
+      Map<String, ExcelRecord> r, Schema recordSchema, CellAddress address) {
     GenericRecord payload = new GenericData.Record(recordSchema);
     Map<String, ExcelRecord> subRecords = new HashMap<>(r);
     for (Schema.Field field : recordSchema.getFields()) {
@@ -28,9 +31,9 @@ public class ExcelRecordParser {
           payload.put(fieldName, subRecord.candidates.get(fieldSchema));
         } else {
           CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
-          compositeErrorMessage.add(subRecord.failures.get(fieldSchema));
           compositeErrorMessage.add(
-              new FormatErrorMessage("Failed to match schema %s", fieldSchema));
+              new FormatErrorMessage("Failed to match schema %s", address, fieldSchema));
+          compositeErrorMessage.add(subRecord.failures.get(fieldSchema));
           return new ParserResult(compositeErrorMessage, null);
         }
       } else {
@@ -45,7 +48,7 @@ public class ExcelRecordParser {
         } else {
           return new ParserResult(
               new FormatErrorMessage(
-                  "Failed to match schema %s, because not nullable", fieldSchema),
+                  "Failed to match schema %s, because not nullable", address, fieldSchema),
               null);
         }
       }
@@ -54,7 +57,7 @@ public class ExcelRecordParser {
     return new ParserResult(
         new FormatErrorMessage(
             "Failed to match schema %s, because of additional fields defined %s",
-            recordSchema, subRecords.keySet()),
+            address, recordSchema, subRecords.keySet()),
         null);
   }
 }

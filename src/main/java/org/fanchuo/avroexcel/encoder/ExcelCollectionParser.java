@@ -2,6 +2,7 @@ package org.fanchuo.avroexcel.encoder;
 
 import java.util.*;
 import org.apache.avro.Schema;
+import org.apache.poi.ss.util.CellAddress;
 import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
@@ -18,11 +19,11 @@ public abstract class ExcelCollectionParser<TSource, TTargetCollection, TIterabl
 
   abstract void aggregate(TTargetCollection collection, TIterable item, Object value);
 
-  public ParserResult parseCollection(TSource records, Schema schema) {
-    return ParserTools.parse(records, schema, this.schemaType(), this::seekMatch);
+  public ParserResult parseCollection(TSource records, Schema schema, CellAddress address) {
+    return ParserTools.parse(records, schema, this.schemaType(), this::seekMatch, address);
   }
 
-  private ParserResult seekMatch(TSource records, Schema schema) {
+  private ParserResult seekMatch(TSource records, Schema schema, CellAddress address) {
     TTargetCollection payload = this.empty();
     Schema subSchema = this.subSchema(schema);
     for (TIterable iterable : this.iterable(records)) {
@@ -32,8 +33,9 @@ public abstract class ExcelCollectionParser<TSource, TTargetCollection, TIterabl
         this.aggregate(payload, iterable, value);
       } else {
         CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
+        compositeErrorMessage.add(
+            new FormatErrorMessage("Failed to match schema %s", address, subSchema));
         compositeErrorMessage.add(excelRecord.failures.get(subSchema));
-        compositeErrorMessage.add(new FormatErrorMessage("Failed to match schema %s", subSchema));
         return new ParserResult(compositeErrorMessage, null);
       }
     }
