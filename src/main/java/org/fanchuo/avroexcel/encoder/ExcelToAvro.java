@@ -47,8 +47,9 @@ public class ExcelToAvro {
   }
 
   public GenericRecord readRecord() {
+    Schema s = Schema.createUnion(this.schema, Schema.create(Schema.Type.NULL));
     ExcelRecord excelRecords =
-        visitObject(this.col, this.row, Collections.singletonList(this.schema), this.headerInfo);
+        visitObject(this.col, this.row, Collections.singletonList(s), this.headerInfo);
     if (excelRecords.candidates.isEmpty()) {
       CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
       for (Map.Entry<Schema, ErrorMessage> entry : excelRecords.failures.entrySet()) {
@@ -93,6 +94,20 @@ public class ExcelToAvro {
     return -1;
   }
 
+  private enum Choice {
+    UNDEF,
+    MAP,
+    ARRAY,
+    RECORD,
+    SCALAR,
+  }
+
+  private boolean checkBlank(CollectionDescriptor valueCol, int row) {
+    Cell cell = this.sheet.getCell(valueCol.col, row);
+    if (cell==null) return true;
+    return cell.getCellType()==CellType.BLANK;
+  }
+
   private ExcelRecord visitObject(int col, int row, List<Schema> schemas, HeaderInfo headerInfo) {
     LOGGER.debug(
         "visitObject : col: {}, row: {}, schemas: {}, headerInfo: {}",
@@ -100,6 +115,7 @@ public class ExcelToAvro {
         row,
         schemas,
         headerInfo);
+    CellAddress address = new CellAddress(row, col);
     if (headerInfo.subHeaders == null) {
       return visitScalar(col, row, schemas);
     }
@@ -110,6 +126,7 @@ public class ExcelToAvro {
     int mapSize = -1;
     CollectionDescriptor mapCol = null;
     CollectionDescriptor keyCol = null;
+    CollectionDescriptor valueCol = null;
     List<Schema> recordSubSchemas =
         ParserTools.flatten(schemas, x -> x.getType() == Schema.Type.RECORD);
     for (HeaderInfo subHeader : headerInfo.subHeaders) {
@@ -124,9 +141,7 @@ public class ExcelToAvro {
       } else if ("#v".equals(subHeader.text)) {
         mapCol = new CollectionDescriptor(colIdx, subHeader);
       } else if (".value".equals(subHeader.text)) {
-        ExcelRecord scalar = visitScalar(colIdx, row, schemas);
-        if (!scalar.candidates.isEmpty()
-            && scalar.candidates.values().stream().anyMatch(Objects::nonNull)) return scalar;
+        valueCol = new CollectionDescriptor(colIdx, subHeader);
       } else {
         List<Schema> subSchema = new ArrayList<>();
         for (Schema schema : recordSubSchemas) {
@@ -138,13 +153,65 @@ public class ExcelToAvro {
       }
       colIdx += subHeader.colSpan;
     }
+    Choice choice = Choice.UNDEF;
     if (arraySize != -1 && arrayCol != null) {
-      return visitArray(row, arraySize, schemas, arrayCol);
+      choice = Choice.ARRAY;
     }
     if (mapSize != -1 && mapCol != null && keyCol != null) {
-      return visitMap(row, mapSize, schemas, keyCol, mapCol);
+      if (choice!=Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.MAP);
+      choice = Choice.MAP;
     }
-    return visitRecord(subRecords, schemas, new CellAddress(row, col));
+    if (valueCol != null && !checkBlank(valueCol, row)) {
+      if (choice!=Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.SCALAR);
+      choice = Choice.SCALAR;
+    }
+    if (!subRecords.isEmpty()) {
+      if (choice!=Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.RECORD);
+      choice = Choice.RECORD;
+    }
+    LOGGER.debug("Choice is {}, arraySize: {}, arrayCol: {}, mapSize: {}, mapCol: {}, keyCol: {}, valueCol: {}, subRecords: {}", choice, arraySize, arrayCol, mapSize, mapCol, keyCol, valueCol, subRecords.keySet());
+    switch (choice) {
+      case ARRAY:
+        return visitArray(row, arraySize, schemas, arrayCol);
+      case MAP:
+        return visitMap(row, mapSize, schemas, keyCol, mapCol);
+      case SCALAR:
+        return visitScalar(valueCol.col, row, schemas);
+      case RECORD:
+        return visitRecord(subRecords, schemas, address);
+      default:
+        return visitNull(schemas, address);
+    }
+  }
+
+  private static ExcelRecord failsChoice(List<Schema> schemas, CellAddress address, Choice choice1, Choice choice2) {
+    Map<Schema, ErrorMessage> failures = new HashMap<>();
+    FormatErrorMessage formatErrorMessage = new FormatErrorMessage("Cannot be both %s and %s", address, choice1, choice2);
+    for (Schema schema : schemas) {
+      failures.put(schema, formatErrorMessage);
+    }
+    return new ExcelRecord(Collections.emptyMap(), failures, RecordGeometry.ATOM);
+  }
+
+  private ExcelRecord visitNull(
+          List<Schema> schemas, CellAddress address) {
+    LOGGER.debug("visitNull : schemas: {}", schemas);
+    Map<Schema, Object> candidates = new HashMap<>();
+    Map<Schema, ErrorMessage> failures = new HashMap<>();
+    for (Schema schema : schemas) {
+      CollectionTypes collectionTypes = ParserTools.collectTypes(schema);
+      if (collectionTypes.nullable) {
+        candidates.put(schema, null);
+      } else if (collectionTypes.listable) {
+        candidates.put(schema, new ArrayList<>());
+      } else if (collectionTypes.mappable) {
+        candidates.put(schema, new HashMap<>());
+      } else {
+        failures.put(schema, new FormatErrorMessage("Not a nullable data", address));
+      }
+    }
+    LOGGER.debug("return null - {}", candidates);
+    return new ExcelRecord(candidates, failures, RecordGeometry.ATOM);
   }
 
   private ExcelRecord visitRecord(

@@ -1,6 +1,5 @@
 package org.fanchuo.avroexcel.encoder;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.avro.Schema;
@@ -38,19 +37,10 @@ public class ExcelRecordParser {
         }
       } else {
         // 2. je ne trouve pas de valeur correspondante, le schema doit être nullable
-        CollectionTypes collectionTypes = ParserTools.collectTypes(fieldSchema);
-        if (collectionTypes.nullable) {
-          payload.put(fieldName, null);
-        } else if (collectionTypes.listable) {
-          payload.put(fieldName, new ArrayList<>());
-        } else if (collectionTypes.mappable) {
-          payload.put(fieldName, new HashMap<>());
-        } else {
-          return new ParserResult(
-              new FormatErrorMessage(
-                  "Failed to match schema %s, because not nullable", address, fieldSchema),
-              null);
-        }
+        return new ParserResult(
+                new FormatErrorMessage(
+                        "Failed to find field %s for schema %s", address, fieldName, recordSchema),
+                null);
       }
     }
     if (subRecords.isEmpty()) return new ParserResult(null, payload);
