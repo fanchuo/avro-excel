@@ -71,17 +71,15 @@ public class ExcelToAvro {
     Cell c = sheet.getCell(col, row);
     Map<Schema, Object> excelRecords = new HashMap<>();
     Map<Schema, ErrorMessage> failure = new HashMap<>();
-    boolean empty = true;
     for (Schema schema : schemas) {
       ExcelFieldParser.TypeParser typeParser =
           this.excelFieldParser.checkCompatible(schema, c, new CellAddress(row, col));
       if (typeParser.isCompatible()) {
         excelRecords.put(schema, typeParser.value);
-        if (typeParser.value != null) empty = false;
       } else failure.put(schema, typeParser.errorMessage);
     }
     LOGGER.debug("return scalar - {}", excelRecords);
-    return new ExcelRecord(excelRecords, failure, RecordGeometry.ATOM, empty);
+    return new ExcelRecord(excelRecords, failure, RecordGeometry.ATOM, false);
   }
 
   private int extractCollectionSize(int col, int row) {
@@ -104,10 +102,10 @@ public class ExcelToAvro {
     SCALAR,
   }
 
-  private boolean checkBlank(CollectionDescriptor valueCol, int row) {
-    Cell cell = this.sheet.getCell(valueCol.col, row);
-    if (cell == null) return true;
-    return cell.getCellType() == CellType.BLANK;
+  private boolean checkNotBlank(int col, int row) {
+    Cell cell = this.sheet.getCell(col, row);
+    if (cell == null) return false;
+    return cell.getCellType() != CellType.BLANK;
   }
 
   private ExcelRecord visitObject(int col, int row, List<Schema> schemas, HeaderInfo headerInfo) {
@@ -119,7 +117,8 @@ public class ExcelToAvro {
         headerInfo);
     CellAddress address = new CellAddress(row, col);
     if (headerInfo.subHeaders == null) {
-      return visitScalar(col, row, schemas);
+      if (checkNotBlank(col, row)) return visitScalar(col, row, schemas);
+      return visitNull(schemas, address);
     }
     Map<String, ExcelRecord> subRecords = new HashMap<>();
     int colIdx = col;
@@ -163,7 +162,7 @@ public class ExcelToAvro {
       if (choice != Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.MAP);
       choice = Choice.MAP;
     }
-    if (valueCol != null && !checkBlank(valueCol, row)) {
+    if (valueCol != null && checkNotBlank(valueCol.col, row)) {
       if (choice != Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.SCALAR);
       choice = Choice.SCALAR;
     }

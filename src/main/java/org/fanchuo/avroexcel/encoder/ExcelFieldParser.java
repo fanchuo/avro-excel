@@ -194,7 +194,6 @@ public class ExcelFieldParser {
     public void analyze(Schema schema, Cell cell, CellAddress address) {}
   }
 
-  private final NullExcelFieldParser NULL_PARSER = new NullExcelFieldParser();
   private final EnumMap<Schema.Type, TypeParser> registry = new EnumMap<>(Schema.Type.class);
 
   public ExcelFieldParser() {
@@ -208,11 +207,6 @@ public class ExcelFieldParser {
   }
 
   public TypeParser checkCompatible(Schema s, Cell cell, CellAddress address) {
-    if (cell == null || cell.getCellType() == CellType.BLANK) {
-      NULL_PARSER.errorMessage =
-          s.isNullable() ? null : new FormatErrorMessage("Cell is not BLANK", address);
-      return NULL_PARSER;
-    }
     List<Schema> schemas = ParserTools.flatten(s, x -> registry.containsKey(x.getType()));
     TypeParser stringTypeParser = null;
     for (Schema schema : schemas) {
