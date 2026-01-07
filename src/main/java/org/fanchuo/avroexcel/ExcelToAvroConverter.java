@@ -7,6 +7,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
+import org.fanchuo.avroexcel.encoder.ExcelSchemaException;
 import org.fanchuo.avroexcel.encoder.ExcelToAvro;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
@@ -20,7 +21,7 @@ public class ExcelToAvroConverter {
       int col,
       int row,
       Schema schema)
-      throws IOException {
+      throws IOException, ExcelSchemaException {
     HeaderInfo headerInfo = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
     ExcelSheetReader excelSheetReader;
     try (InputStream is = new FileInputStream(excelFile)) {

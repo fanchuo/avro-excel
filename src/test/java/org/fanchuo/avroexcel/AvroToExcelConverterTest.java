@@ -41,7 +41,7 @@ class AvroToExcelConverterTest {
   }
 
   @Test
-  void convert() throws IOException {
+  void convert() throws Exception {
     Schema schema = new Schema.Parser().parse(getClass().getResourceAsStream("/user.avsc"));
     File avroFile = TEST_OUTPUT_DIR.resolve("users.avro").toFile();
     createSampleAvroFile(avroFile, schema);

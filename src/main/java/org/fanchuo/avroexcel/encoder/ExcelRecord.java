@@ -9,13 +9,16 @@ public class ExcelRecord {
   final Map<Schema, Object> candidates;
   final Map<Schema, ErrorMessage> failures;
   final RecordGeometry recordGeometry;
+  final boolean empty;
 
   ExcelRecord(
       Map<Schema, Object> candidates,
       Map<Schema, ErrorMessage> failures,
-      RecordGeometry recordGeometry) {
+      RecordGeometry recordGeometry,
+      boolean empty) {
     this.candidates = candidates;
     this.failures = failures;
     this.recordGeometry = recordGeometry;
+    this.empty = empty;
   }
 }

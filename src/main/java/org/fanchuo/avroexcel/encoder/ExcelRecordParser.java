@@ -38,9 +38,9 @@ public class ExcelRecordParser {
       } else {
         // 2. je ne trouve pas de valeur correspondante, le schema doit être nullable
         return new ParserResult(
-                new FormatErrorMessage(
-                        "Failed to find field %s for schema %s", address, fieldName, recordSchema),
-                null);
+            new FormatErrorMessage(
+                "Failed to find field %s for schema %s", address, fieldName, recordSchema),
+            null);
       }
     }
     if (subRecords.isEmpty()) return new ParserResult(null, payload);

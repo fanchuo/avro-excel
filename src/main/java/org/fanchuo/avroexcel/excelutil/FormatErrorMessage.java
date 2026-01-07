@@ -16,7 +16,7 @@ public class FormatErrorMessage implements ErrorMessage {
 
   @Override
   public void dump(String indent, StringBuilder builder) {
+    if (this.address != null) builder.append("[").append(this.address).append("] ");
     builder.append(indent).append(new Formatter().format(this.fmtString, this.vargs));
-    if (this.address != null) builder.append(" [").append(this.address).append(']');
   }
 }

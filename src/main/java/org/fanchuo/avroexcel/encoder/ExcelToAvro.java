@@ -46,7 +46,7 @@ public class ExcelToAvro {
     this.row = row;
   }
 
-  public GenericRecord readRecord() {
+  public GenericRecord readRecord() throws ExcelSchemaException {
     Schema s = Schema.createUnion(this.schema, Schema.create(Schema.Type.NULL));
     ExcelRecord excelRecords =
         visitObject(this.col, this.row, Collections.singletonList(s), this.headerInfo);
@@ -59,8 +59,7 @@ public class ExcelToAvro {
       }
       StringBuilder sb = new StringBuilder();
       compositeErrorMessage.dump("", sb);
-      LOGGER.error(sb.toString());
-      return null;
+      throw new ExcelSchemaException(sb.toString());
     }
     GenericRecord toReturn = (GenericRecord) excelRecords.candidates.values().iterator().next();
     this.row += excelRecords.recordGeometry.rowSpan;
@@ -72,14 +71,17 @@ public class ExcelToAvro {
     Cell c = sheet.getCell(col, row);
     Map<Schema, Object> excelRecords = new HashMap<>();
     Map<Schema, ErrorMessage> failure = new HashMap<>();
+    boolean empty = true;
     for (Schema schema : schemas) {
       ExcelFieldParser.TypeParser typeParser =
           this.excelFieldParser.checkCompatible(schema, c, new CellAddress(row, col));
-      if (typeParser.isCompatible()) excelRecords.put(schema, typeParser.value);
-      else failure.put(schema, typeParser.errorMessage);
+      if (typeParser.isCompatible()) {
+        excelRecords.put(schema, typeParser.value);
+        if (typeParser.value != null) empty = false;
+      } else failure.put(schema, typeParser.errorMessage);
     }
     LOGGER.debug("return scalar - {}", excelRecords);
-    return new ExcelRecord(excelRecords, failure, RecordGeometry.ATOM);
+    return new ExcelRecord(excelRecords, failure, RecordGeometry.ATOM, empty);
   }
 
   private int extractCollectionSize(int col, int row) {
@@ -104,8 +106,8 @@ public class ExcelToAvro {
 
   private boolean checkBlank(CollectionDescriptor valueCol, int row) {
     Cell cell = this.sheet.getCell(valueCol.col, row);
-    if (cell==null) return true;
-    return cell.getCellType()==CellType.BLANK;
+    if (cell == null) return true;
+    return cell.getCellType() == CellType.BLANK;
   }
 
   private ExcelRecord visitObject(int col, int row, List<Schema> schemas, HeaderInfo headerInfo) {
@@ -158,18 +160,27 @@ public class ExcelToAvro {
       choice = Choice.ARRAY;
     }
     if (mapSize != -1 && mapCol != null && keyCol != null) {
-      if (choice!=Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.MAP);
+      if (choice != Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.MAP);
       choice = Choice.MAP;
     }
     if (valueCol != null && !checkBlank(valueCol, row)) {
-      if (choice!=Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.SCALAR);
+      if (choice != Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.SCALAR);
       choice = Choice.SCALAR;
     }
-    if (!subRecords.isEmpty()) {
-      if (choice!=Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.RECORD);
+    if (!checkEmpty(subRecords)) {
+      if (choice != Choice.UNDEF) return failsChoice(schemas, address, choice, Choice.RECORD);
       choice = Choice.RECORD;
     }
-    LOGGER.debug("Choice is {}, arraySize: {}, arrayCol: {}, mapSize: {}, mapCol: {}, keyCol: {}, valueCol: {}, subRecords: {}", choice, arraySize, arrayCol, mapSize, mapCol, keyCol, valueCol, subRecords.keySet());
+    LOGGER.debug(
+        "Choice is {}, arraySize: {}, arrayCol: {}, mapSize: {}, mapCol: {}, keyCol: {}, valueCol: {}, subRecords: {}",
+        choice,
+        arraySize,
+        arrayCol,
+        mapSize,
+        mapCol,
+        keyCol,
+        valueCol,
+        subRecords.keySet());
     switch (choice) {
       case ARRAY:
         return visitArray(row, arraySize, schemas, arrayCol);
@@ -184,17 +195,25 @@ public class ExcelToAvro {
     }
   }
 
-  private static ExcelRecord failsChoice(List<Schema> schemas, CellAddress address, Choice choice1, Choice choice2) {
+  private boolean checkEmpty(Map<String, ExcelRecord> subRecords) {
+    for (ExcelRecord r : subRecords.values()) {
+      if (!r.empty) return false;
+    }
+    return true;
+  }
+
+  private static ExcelRecord failsChoice(
+      List<Schema> schemas, CellAddress address, Choice choice1, Choice choice2) {
     Map<Schema, ErrorMessage> failures = new HashMap<>();
-    FormatErrorMessage formatErrorMessage = new FormatErrorMessage("Cannot be both %s and %s", address, choice1, choice2);
+    FormatErrorMessage formatErrorMessage =
+        new FormatErrorMessage("Cannot be both %s and %s", address, choice1, choice2);
     for (Schema schema : schemas) {
       failures.put(schema, formatErrorMessage);
     }
-    return new ExcelRecord(Collections.emptyMap(), failures, RecordGeometry.ATOM);
+    return new ExcelRecord(Collections.emptyMap(), failures, RecordGeometry.ATOM, false);
   }
 
-  private ExcelRecord visitNull(
-          List<Schema> schemas, CellAddress address) {
+  private ExcelRecord visitNull(List<Schema> schemas, CellAddress address) {
     LOGGER.debug("visitNull : schemas: {}", schemas);
     Map<Schema, Object> candidates = new HashMap<>();
     Map<Schema, ErrorMessage> failures = new HashMap<>();
@@ -203,15 +222,15 @@ public class ExcelToAvro {
       if (collectionTypes.nullable) {
         candidates.put(schema, null);
       } else if (collectionTypes.listable) {
-        candidates.put(schema, new ArrayList<>());
+        candidates.put(schema, Collections.emptyList());
       } else if (collectionTypes.mappable) {
-        candidates.put(schema, new HashMap<>());
+        candidates.put(schema, Collections.emptyMap());
       } else {
         failures.put(schema, new FormatErrorMessage("Not a nullable data", address));
       }
     }
     LOGGER.debug("return null - {}", candidates);
-    return new ExcelRecord(candidates, failures, RecordGeometry.ATOM);
+    return new ExcelRecord(candidates, failures, RecordGeometry.ATOM, true);
   }
 
   private ExcelRecord visitRecord(
@@ -234,7 +253,7 @@ public class ExcelToAvro {
       }
     }
     LOGGER.debug("return record - {}", candidates);
-    return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, map, null));
+    return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, map, null), false);
   }
 
   private ExcelRecord visitArray(
@@ -278,7 +297,7 @@ public class ExcelToAvro {
       }
     }
     LOGGER.debug("return array - {}", candidates);
-    return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, null, subList));
+    return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, null, subList), false);
   }
 
   private ExcelRecord visitMap(
@@ -326,6 +345,6 @@ public class ExcelToAvro {
       }
     }
     LOGGER.debug("return map - {}", candidates);
-    return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, null, subList));
+    return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, null, subList), false);
   }
 }
