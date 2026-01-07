@@ -10,7 +10,6 @@ import org.apache.avro.file.DataFileReader;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.DatumReader;
 
 public class AvroReader implements Closeable {
   public static GenericData makeGenericData() {
@@ -31,12 +30,11 @@ public class AvroReader implements Closeable {
   private final Schema schema;
 
   public AvroReader(File avroFile) throws IOException {
-    DatumReader<GenericRecord> datumReader =
-        new GenericDatumReader<>(null, null, makeGenericData());
-    DataFileReader<GenericRecord> dataFileReader = new DataFileReader<>(avroFile, datumReader);
-    this.iterable = dataFileReader;
-    this.closeable = dataFileReader;
-    this.schema = dataFileReader.getSchema();
+    this(new DataFileReader<>(avroFile, new GenericDatumReader<>(null, null, makeGenericData())));
+  }
+
+  public AvroReader(DataFileReader<GenericRecord> dataFileReader) {
+    this(dataFileReader, dataFileReader, dataFileReader.getSchema());
   }
 
   public AvroReader(Iterable<GenericRecord> iterable, Closeable closeable, Schema schema) {

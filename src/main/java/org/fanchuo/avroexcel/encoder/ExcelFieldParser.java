@@ -189,11 +189,6 @@ public class ExcelFieldParser {
     }
   }
 
-  static class NullExcelFieldParser extends TypeParser {
-    @Override
-    public void analyze(Schema schema, Cell cell, CellAddress address) {}
-  }
-
   private final EnumMap<Schema.Type, TypeParser> registry = new EnumMap<>(Schema.Type.class);
 
   public ExcelFieldParser() {
