@@ -1,7 +1,6 @@
 package org.fanchuo.avroexcel;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
 import java.net.URL;
@@ -19,6 +18,7 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.commons.io.IOUtils;
+import org.fanchuo.avroexcel.encoder.ExcelSchemaException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,6 +78,41 @@ class AvroToExcelConverterTest {
       IOUtils.copy(r2, sw2);
     }
     Assertions.assertLinesMatch(Arrays.asList(sw2.toString().split("\n")), dump2);
+  }
+
+  @Test
+  public void validate() throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Schema date = new Schema.Parser().parse("{\"type\": \"int\", \"logicalType\": \"date\"}");
+    Schema datetime =
+        new Schema.Parser()
+            .parse("{\"type\": \"long\", \"logicalType\": \"local-timestamp-millis\"}");
+    Schema schema =
+        Schema.createRecord(
+            "test",
+            null,
+            null,
+            false,
+            Arrays.asList(
+                new Schema.Field("field_txt", Schema.create(Schema.Type.STRING)),
+                new Schema.Field("field_num", Schema.create(Schema.Type.DOUBLE)),
+                new Schema.Field("field_bool", Schema.create(Schema.Type.BOOLEAN)),
+                new Schema.Field("field_date", date),
+                new Schema.Field("field_time", datetime)));
+    try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
+      ExcelToAvroConverter.convert(is, baos, "Test1", 0, 0, schema);
+      fail("Should not have worked");
+    } catch (ExcelSchemaException e) {
+      assertEquals(
+          "Caused by:\n"
+              + "  [A3] Cannot match schema [RECORD test [field_txt, field_num, field_bool, field_date, field_time], \"null\"]\n"
+              + "  Caused by:\n"
+              + "    [A3] Cannot match schema RECORD test [field_txt, field_num, field_bool, field_date, field_time]\n"
+              + "    Caused by:\n"
+              + "      [A3] Failed to match schema \"string\"\n"
+              + "      [A3] Cell type 'NUMERIC' is not STRING",
+          e.getMessage());
+    }
   }
 
   private void createSampleAvroFile(File file, Schema schema) throws IOException {

@@ -51,10 +51,12 @@ public class ExcelToAvro {
     ExcelRecord excelRecords =
         visitObject(this.col, this.row, Collections.singletonList(s), this.headerInfo);
     if (excelRecords.candidates.isEmpty()) {
+      CellAddress address = new CellAddress(this.row, this.col);
       CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
       for (Map.Entry<Schema, ErrorMessage> entry : excelRecords.failures.entrySet()) {
         compositeErrorMessage.add(
-            new FormatErrorMessage("Cannot match schema %s", null, entry.getKey()));
+            new FormatErrorMessage(
+                "Cannot match schema %s", address, new SchemaReport(entry.getKey())));
         compositeErrorMessage.add(entry.getValue());
       }
       StringBuilder sb = new StringBuilder();
@@ -150,7 +152,7 @@ public class ExcelToAvro {
           if (field != null) subSchema.add(field.schema());
         }
         ExcelRecord field = visitObject(colIdx, row, subSchema, subHeader);
-        if (!field.candidates.isEmpty()) subRecords.put(subHeader.text, field);
+        subRecords.put(subHeader.text, field);
       }
       colIdx += subHeader.colSpan;
     }

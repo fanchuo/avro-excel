@@ -22,11 +22,21 @@ public class ExcelToAvroConverter {
       int row,
       Schema schema)
       throws IOException, ExcelSchemaException {
-    HeaderInfo headerInfo = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
-    ExcelSheetReader excelSheetReader;
     try (InputStream is = new FileInputStream(excelFile)) {
-      excelSheetReader = ExcelSheetReader.loadSheet(is, sheetName);
+      convert(is, avroOutputStream, sheetName, col, row, schema);
     }
+  }
+
+  public static void convert(
+      InputStream inputStream,
+      OutputStream avroOutputStream,
+      String sheetName,
+      int col,
+      int row,
+      Schema schema)
+      throws IOException, ExcelSchemaException {
+    HeaderInfo headerInfo = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
+    ExcelSheetReader excelSheetReader = ExcelSheetReader.loadSheet(inputStream, sheetName);
     ExcelToAvro excelToAvro =
         new ExcelToAvro(excelSheetReader, schema, headerInfo, col, row + headerInfo.rowSpan);
     GenericRecord record;

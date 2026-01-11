@@ -39,7 +39,8 @@ public class ExcelRecordParser {
         // 2. je ne trouve pas de valeur correspondante, le schema doit être nullable
         return new ParserResult(
             new FormatErrorMessage(
-                "Failed to find field %s for schema %s", address, fieldName, recordSchema),
+                "Failed to find field %s for schema %s",
+                address, fieldName, new SchemaReport(recordSchema)),
             null);
       }
     }
@@ -47,7 +48,7 @@ public class ExcelRecordParser {
     return new ParserResult(
         new FormatErrorMessage(
             "Failed to match schema %s, because of additional fields defined %s",
-            address, recordSchema, subRecords.keySet()),
+            address, new SchemaReport(recordSchema), subRecords.keySet()),
         null);
   }
 }

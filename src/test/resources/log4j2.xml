@@ -10,6 +10,6 @@
         <Root level="info">
             <AppenderRef ref="ConsoleAppender"/>
         </Root>
-        <Logger name="org.fanchuo.avroexcel" level="info"/>
+        <Logger name="org.fanchuo.avroexcel" level="debug"/>
     </Loggers>
 </Configuration>

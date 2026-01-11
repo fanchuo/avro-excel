@@ -8,8 +8,8 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.apache.avro.Schema;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.util.CellAddress;
 import org.fanchuo.avroexcel.excelutil.ErrorMessage;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
@@ -73,18 +73,6 @@ public class ExcelFieldParser {
       new CopyOnWriteArraySet<>(
           Arrays.asList("timestamp-millis", "timestamp-micros", "timestamp-nanos"));
 
-  /**
-   * @param cell An Excel cell
-   * @return If it is formatted as a date
-   * @see org.apache.poi.ss.usermodel.BuiltinFormats
-   */
-  private static boolean isDate(Cell cell) {
-    CellStyle style = cell.getCellStyle();
-    if (style == null) return false;
-    short dataFormat = style.getDataFormat();
-    return dataFormat >= 0xe && dataFormat <= 0x16;
-  }
-
   abstract static class AbstractIntExcelFieldParser<T extends Number> extends TypeParser {
     abstract T getIntValue(double v);
 
@@ -93,7 +81,7 @@ public class ExcelFieldParser {
       String logicalType =
           schema.getLogicalType() == null ? null : schema.getLogicalType().getName();
       if (logicalType != null && LOCALDATE_LOGICAL_TYPES.contains(logicalType)) {
-        if (cell.getCellType() == CellType.NUMERIC && isDate(cell)) {
+        if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
           this.errorMessage = null;
           if ("date".equals(logicalType))
             this.value = cell.getLocalDateTimeCellValue().toLocalDate();
@@ -179,12 +167,12 @@ public class ExcelFieldParser {
   static class BooleanExcelFieldParser extends TypeParser {
     @Override
     public void analyze(Schema schema, Cell cell, CellAddress address) {
-      if (cell.getCellType() == CellType.BOOLEAN) {
+      if (cell.getCellType() == CellType.BOOLEAN || cell.getCellType() == CellType.FORMULA) {
         this.errorMessage = null;
         this.value = cell.getBooleanCellValue();
       } else {
         this.errorMessage =
-            new FormatErrorMessage("Cell type '%s' is not NUMERIC", address, cell.getCellType());
+            new FormatErrorMessage("Cell type '%s' is not BOOLEAN", address, cell.getCellType());
       }
     }
   }

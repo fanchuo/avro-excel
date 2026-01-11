@@ -72,11 +72,12 @@ public class ParserTools {
     for (Schema s : schemas) {
       ParserResult parseAttempt = attempt.attempt(subRecords, s, address);
       if (parseAttempt.errorMessage == null) return parseAttempt;
-      errorMessage.add(new FormatErrorMessage("Cannot match schema %s", null, s));
+      errorMessage.add(
+          new FormatErrorMessage("Cannot match schema %s", address, new SchemaReport(s)));
       errorMessage.add(parseAttempt.errorMessage);
     }
     if (errorMessage.size() == 0)
-      return new ParserResult(new FormatErrorMessage("No schema of type %s", null, sType), null);
+      return new ParserResult(new FormatErrorMessage("No schema of type %s", address, sType), null);
     return new ParserResult(errorMessage, null);
   }
 }
