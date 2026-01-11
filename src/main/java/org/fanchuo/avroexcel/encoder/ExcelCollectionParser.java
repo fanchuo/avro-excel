@@ -34,7 +34,8 @@ public abstract class ExcelCollectionParser<TSource, TTargetCollection, TIterabl
       } else {
         CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
         compositeErrorMessage.add(
-            new FormatErrorMessage("Failed to match schema %s", address, subSchema));
+            new FormatErrorMessage(
+                "Failed to match schema %s", address, new SchemaReport(subSchema)));
         compositeErrorMessage.add(excelRecord.failures.get(subSchema));
         return new ParserResult(compositeErrorMessage, null);
       }

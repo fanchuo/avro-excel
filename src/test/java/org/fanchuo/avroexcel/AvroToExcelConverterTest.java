@@ -115,6 +115,70 @@ class AvroToExcelConverterTest {
     }
   }
 
+  @Test
+  public void validate2() throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Schema schema =
+        Schema.createRecord(
+            "test",
+            null,
+            null,
+            false,
+            Arrays.asList(
+                new Schema.Field("field_txt", Schema.create(Schema.Type.STRING)),
+                new Schema.Field("field_num", Schema.create(Schema.Type.DOUBLE)),
+                new Schema.Field("field_bool", Schema.create(Schema.Type.BOOLEAN))));
+    try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
+      ExcelToAvroConverter.convert(is, baos, "Test1", 0, 0, schema);
+      fail("Should not have worked");
+    } catch (ExcelSchemaException e) {
+      assertEquals(
+          "Caused by:\n"
+              + "  [A2] Cannot match schema [RECORD test [field_txt, field_num, field_bool], \"null\"]\n"
+              + "  Caused by:\n"
+              + "    [A2] Cannot match schema RECORD test [field_txt, field_num, field_bool]\n"
+              + "    [A2] Failed to match schema RECORD test [field_txt, field_num, field_bool], because of additional fields defined [field_date, field_time]",
+          e.getMessage());
+    }
+  }
+
+  @Test
+  public void validate3() throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Schema recordC =
+        Schema.createRecord(
+            "testC",
+            null,
+            null,
+            false,
+            Collections.singletonList(new Schema.Field("c", Schema.create(Schema.Type.STRING))));
+    Schema array = Schema.createArray(Schema.create(Schema.Type.INT));
+    Schema unionB = Schema.createUnion(recordC, array);
+    Schema schema =
+        Schema.createRecord(
+            "test",
+            null,
+            null,
+            false,
+            Arrays.asList(
+                new Schema.Field("a", Schema.create(Schema.Type.STRING)),
+                new Schema.Field("b", unionB)));
+    try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
+      ExcelToAvroConverter.convert(is, baos, "Test2", 0, 0, schema);
+      fail("Should not have worked");
+    } catch (ExcelSchemaException e) {
+      assertEquals(
+          "Caused by:\n"
+              + "  [A3] Cannot match schema [RECORD test [a, b], \"null\"]\n"
+              + "  Caused by:\n"
+              + "    [A3] Cannot match schema RECORD test [a, b]\n"
+              + "    Caused by:\n"
+              + "      [A3] Failed to match schema [RECORD testC [c], ARRAY \"int\"]\n"
+              + "      [B3] Cannot be both ARRAY and RECORD",
+          e.getMessage());
+    }
+  }
+
   private void createSampleAvroFile(File file, Schema schema) throws IOException {
     GenericData genericData = AvroReader.makeGenericData();
     Schema favoriteSchema = schema.getField("favorite").schema();
