@@ -22,7 +22,7 @@ public class HeaderInfoExcelReader {
       colSpan += subHeader.colSpan;
       rowSpan = Math.max(rowSpan, subHeader.rowSpan);
     }
-    return new HeaderInfo(null, subHeaders, colSpan, rowSpan + 1, false);
+    return new HeaderInfo(null, subHeaders, colSpan, rowSpan, false);
   }
 
   private static HeaderInfo visitSub(ExcelSheetReader sheet, int col, int row) {

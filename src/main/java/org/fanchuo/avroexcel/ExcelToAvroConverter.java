@@ -11,7 +11,7 @@ import org.fanchuo.avroexcel.encoder.ExcelSchemaException;
 import org.fanchuo.avroexcel.encoder.ExcelToAvro;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
-import org.fanchuo.avroexcel.headerinfo.HeaderInfoAvroSchemaReader;
+import org.fanchuo.avroexcel.headerinfo.HeaderInfoExcelReader;
 
 public class ExcelToAvroConverter {
   public static void convert(
@@ -35,8 +35,8 @@ public class ExcelToAvroConverter {
       int row,
       Schema schema)
       throws IOException, ExcelSchemaException {
-    HeaderInfo headerInfo = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
     ExcelSheetReader excelSheetReader = ExcelSheetReader.loadSheet(inputStream, sheetName);
+    HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, col, row);
     ExcelToAvro excelToAvro =
         new ExcelToAvro(excelSheetReader, schema, headerInfo, col, row + headerInfo.rowSpan);
     GenericRecord record;

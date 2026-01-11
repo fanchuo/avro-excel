@@ -151,7 +151,12 @@ public class ExcelToAvro {
           Schema.Field field = schema.getField(subHeader.text);
           if (field != null) subSchema.add(field.schema());
         }
-        ExcelRecord field = visitObject(colIdx, row, subSchema, subHeader);
+        ExcelRecord field;
+        if (subSchema.isEmpty()) {
+          field = failsChoice(recordSubSchemas, address, subHeader.text);
+        } else {
+          field = visitObject(colIdx, row, subSchema, subHeader);
+        }
         subRecords.put(subHeader.text, field);
       }
       colIdx += subHeader.colSpan;
@@ -205,11 +210,20 @@ public class ExcelToAvro {
 
   private static ExcelRecord failsChoice(
       List<Schema> schemas, CellAddress address, Choice choice1, Choice choice2) {
+    return failsChoice(
+        schemas, new FormatErrorMessage("Cannot be both %s and %s", address, choice1, choice2));
+  }
+
+  private static ExcelRecord failsChoice(
+      List<Schema> schemas, CellAddress address, String headerTxt) {
+    return failsChoice(
+        schemas, new FormatErrorMessage("Cannot find header %s", address, headerTxt));
+  }
+
+  private static ExcelRecord failsChoice(List<Schema> schemas, FormatErrorMessage errorMessage) {
     Map<Schema, ErrorMessage> failures = new HashMap<>();
-    FormatErrorMessage formatErrorMessage =
-        new FormatErrorMessage("Cannot be both %s and %s", address, choice1, choice2);
     for (Schema schema : schemas) {
-      failures.put(schema, formatErrorMessage);
+      failures.put(schema, errorMessage);
     }
     return new ExcelRecord(Collections.emptyMap(), failures, RecordGeometry.ATOM, false);
   }
