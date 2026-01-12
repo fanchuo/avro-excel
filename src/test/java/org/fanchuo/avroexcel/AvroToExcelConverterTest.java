@@ -101,7 +101,7 @@ class AvroToExcelConverterTest {
                 new Schema.Field("field_time", datetime)));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       ExcelToAvroConverter.convert(is, baos, "Test1", 0, 0, schema);
-      fail("Should not have worked");
+      fail("Should not have failed");
     } catch (ExcelSchemaException e) {
       assertEquals(
           "Caused by:\n"
@@ -130,7 +130,7 @@ class AvroToExcelConverterTest {
                 new Schema.Field("field_bool", Schema.create(Schema.Type.BOOLEAN))));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       ExcelToAvroConverter.convert(is, baos, "Test1", 0, 0, schema);
-      fail("Should not have worked");
+      fail("Should not have failed");
     } catch (ExcelSchemaException e) {
       assertEquals(
           "Caused by:\n"
@@ -165,7 +165,7 @@ class AvroToExcelConverterTest {
                 new Schema.Field("b", unionB)));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       ExcelToAvroConverter.convert(is, baos, "Test2", 0, 0, schema);
-      fail("Should not have worked");
+      fail("Should not have failed");
     } catch (ExcelSchemaException e) {
       assertEquals(
           "Caused by:\n"
@@ -175,6 +175,112 @@ class AvroToExcelConverterTest {
               + "    Caused by:\n"
               + "      [A3] Failed to match schema [RECORD testC [c], ARRAY \"int\"]\n"
               + "      [B3] Cannot be both ARRAY and RECORD",
+          e.getMessage());
+    }
+  }
+
+  @Test
+  public void validate4() throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Schema enumA = Schema.createEnum("enumA", null, null, Arrays.asList("c", "d"));
+    Schema schema =
+        Schema.createRecord(
+            "test", null, null, false, Collections.singletonList(new Schema.Field("a", enumA)));
+    try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
+      ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema);
+      fail("Should not have failed");
+    } catch (ExcelSchemaException e) {
+      assertEquals(
+          "Caused by:\n"
+              + "  [A2] Cannot match schema [RECORD test [a], \"null\"]\n"
+              + "  Caused by:\n"
+              + "    [A2] Cannot match schema RECORD test [a]\n"
+              + "    [A2] Failed to match schema RECORD test [a], because of additional fields defined [b]",
+          e.getMessage());
+    }
+  }
+
+  @Test
+  public void validate5() throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Schema enumA = Schema.createEnum("enumA", null, null, Arrays.asList("c", "d"));
+    Schema schema =
+        Schema.createRecord(
+            "test",
+            null,
+            null,
+            false,
+            Arrays.asList(
+                new Schema.Field("a", enumA),
+                new Schema.Field("b", Schema.createUnion(enumA, Schema.create(Schema.Type.NULL)))));
+    try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
+      ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema);
+      fail("Should not have failed");
+    } catch (ExcelSchemaException e) {
+      assertEquals(
+          "Caused by:\n"
+              + "  [A3] Cannot match schema [RECORD test [a, b], \"null\"]\n"
+              + "  Caused by:\n"
+              + "    [A3] Cannot match schema RECORD test [a, b]\n"
+              + "    Caused by:\n"
+              + "      [A3] Failed to match schema [{\"type\":\"enum\",\"name\":\"enumA\",\"symbols\":[\"c\",\"d\"]}, \"null\"]\n"
+              + "      [B3] 'e' is not one of [c, d]",
+          e.getMessage());
+    }
+  }
+
+  @Test
+  public void validate6() throws Exception {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Schema enumA = Schema.createEnum("enumA", null, null, Arrays.asList("c", "d"));
+    Schema schema =
+        Schema.createRecord(
+            "test",
+            null,
+            null,
+            false,
+            Arrays.asList(
+                new Schema.Field("a", enumA),
+                new Schema.Field(
+                    "b",
+                    Schema.createUnion(
+                        Schema.create(Schema.Type.STRING), Schema.create(Schema.Type.NULL))),
+                new Schema.Field(
+                    "c",
+                    Schema.createUnion(
+                        Schema.create(Schema.Type.STRING), Schema.create(Schema.Type.NULL)))));
+    try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
+      ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema);
+    }
+  }
+
+  @Test
+  public void validate7() throws Exception {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Schema enumA = Schema.createEnum("enumA", null, null, Arrays.asList("c", "d"));
+    Schema schema =
+        Schema.createRecord(
+            "test",
+            null,
+            null,
+            false,
+            Arrays.asList(
+                new Schema.Field("a", enumA),
+                new Schema.Field(
+                    "b",
+                    Schema.createUnion(
+                        Schema.create(Schema.Type.STRING), Schema.create(Schema.Type.NULL))),
+                new Schema.Field("c", Schema.create(Schema.Type.STRING))));
+    try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
+      ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema);
+      fail("Should not have failed");
+    } catch (ExcelSchemaException e) {
+      assertEquals(
+          "Caused by:\n"
+              + "  [A2] Cannot match schema [RECORD test [a, b, c], \"null\"]\n"
+              + "  Caused by:\n"
+              + "    [A2] Cannot match schema RECORD test [a, b, c]\n"
+              + "    [A2] Failed to find field c for schema RECORD test [a, b, c]",
           e.getMessage());
     }
   }

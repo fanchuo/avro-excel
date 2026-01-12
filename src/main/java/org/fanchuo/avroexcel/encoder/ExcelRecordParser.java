@@ -10,6 +10,10 @@ import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
 public class ExcelRecordParser {
+  private ExcelRecordParser() {
+    super();
+  }
+
   public static ParserResult parseRecord(
       Map<String, ExcelRecord> subRecords, Schema schema, CellAddress address) {
     return ParserTools.parse(
@@ -38,11 +42,13 @@ public class ExcelRecordParser {
         }
       } else {
         // 2. je ne trouve pas de valeur correspondante, le schema doit être nullable
-        return new ParserResult(
-            new FormatErrorMessage(
-                "Failed to find field %s for schema %s",
-                address, fieldName, new SchemaReport(recordSchema)),
-            null);
+        if (fieldSchema.isNullable()) payload.put(fieldName, null);
+        else
+          return new ParserResult(
+              new FormatErrorMessage(
+                  "Failed to find field %s for schema %s",
+                  address, fieldName, new SchemaReport(recordSchema)),
+              null);
       }
     }
     if (subRecords.isEmpty()) return new ParserResult(null, payload);

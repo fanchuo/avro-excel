@@ -7,6 +7,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -33,7 +34,7 @@ public class ExcelFieldParser {
         String str = cell.getStringCellValue();
         if (schema.getEnumSymbols().contains(str)) {
           this.errorMessage = null;
-          this.value = str;
+          this.value = new GenericData.EnumSymbol(schema, str);
         } else {
           this.errorMessage =
               new FormatErrorMessage(
