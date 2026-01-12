@@ -120,7 +120,7 @@ public class ExcelToAvro {
     CellAddress address = new CellAddress(row, col);
     if (headerInfo.subHeaders == null) {
       if (checkNotBlank(col, row)) return visitScalar(col, row, schemas);
-      return visitNull(schemas, address);
+      return ParserTools.visitNull(schemas, address);
     }
     Map<String, ExcelRecord> subRecords = new HashMap<>();
     int colIdx = col;
@@ -197,7 +197,7 @@ public class ExcelToAvro {
       case RECORD:
         return visitRecord(subRecords, schemas, address);
       default:
-        return visitNull(schemas, address);
+        return ParserTools.visitNull(schemas, address);
     }
   }
 
@@ -226,26 +226,6 @@ public class ExcelToAvro {
       failures.put(schema, errorMessage);
     }
     return new ExcelRecord(Collections.emptyMap(), failures, RecordGeometry.ATOM, false);
-  }
-
-  private ExcelRecord visitNull(List<Schema> schemas, CellAddress address) {
-    LOGGER.debug("visitNull : schemas: {}", schemas);
-    Map<Schema, Object> candidates = new HashMap<>();
-    Map<Schema, ErrorMessage> failures = new HashMap<>();
-    for (Schema schema : schemas) {
-      CollectionTypes collectionTypes = ParserTools.collectTypes(schema);
-      if (collectionTypes.nullable) {
-        candidates.put(schema, null);
-      } else if (collectionTypes.listable) {
-        candidates.put(schema, Collections.emptyList());
-      } else if (collectionTypes.mappable) {
-        candidates.put(schema, Collections.emptyMap());
-      } else {
-        failures.put(schema, new FormatErrorMessage("Not a nullable data", address));
-      }
-    }
-    LOGGER.debug("return null - {}", candidates);
-    return new ExcelRecord(candidates, failures, RecordGeometry.ATOM, true);
   }
 
   private ExcelRecord visitRecord(

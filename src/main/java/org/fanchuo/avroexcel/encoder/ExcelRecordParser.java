@@ -1,5 +1,6 @@
 package org.fanchuo.avroexcel.encoder;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.avro.Schema;
@@ -42,7 +43,10 @@ public class ExcelRecordParser {
         }
       } else {
         // 2. je ne trouve pas de valeur correspondante, le schema doit être nullable
-        if (fieldSchema.isNullable()) payload.put(fieldName, null);
+        CollectionTypes collectionTypes = ParserTools.collectTypes(fieldSchema);
+        if (collectionTypes.nullable) payload.put(fieldName, null);
+        else if (collectionTypes.listable) payload.put(fieldName, Collections.emptyList());
+        else if (collectionTypes.mappable) payload.put(fieldName, Collections.emptyMap());
         else
           return new ParserResult(
               new FormatErrorMessage(

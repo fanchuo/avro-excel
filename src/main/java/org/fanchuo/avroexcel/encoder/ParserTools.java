@@ -1,15 +1,23 @@
 package org.fanchuo.avroexcel.encoder;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import org.apache.avro.Schema;
 import org.apache.poi.ss.util.CellAddress;
 import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
+import org.fanchuo.avroexcel.excelutil.ErrorMessage;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
+import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ParserTools {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ParserTools.class);
+
+  private ParserTools() {
+    super();
+  }
+
   public static List<Schema> flatten(Schema schema, Predicate<Schema> predicate) {
     return flatten(Collections.singletonList(schema), predicate);
   }
@@ -29,6 +37,26 @@ public class ParserTools {
         output.add(schema);
       }
     }
+  }
+
+  public static ExcelRecord visitNull(List<Schema> schemas, CellAddress address) {
+    LOGGER.debug("visitNull : schemas: {}", schemas);
+    Map<Schema, Object> candidates = new HashMap<>();
+    Map<Schema, ErrorMessage> failures = new HashMap<>();
+    for (Schema schema : schemas) {
+      CollectionTypes collectionTypes = ParserTools.collectTypes(schema);
+      if (collectionTypes.nullable) {
+        candidates.put(schema, null);
+      } else if (collectionTypes.listable) {
+        candidates.put(schema, Collections.emptyList());
+      } else if (collectionTypes.mappable) {
+        candidates.put(schema, Collections.emptyMap());
+      } else {
+        failures.put(schema, new FormatErrorMessage("Not a nullable data", address));
+      }
+    }
+    LOGGER.debug("return null - {}", candidates);
+    return new ExcelRecord(candidates, failures, RecordGeometry.ATOM, true);
   }
 
   public static CollectionTypes collectTypes(Schema schema) {
