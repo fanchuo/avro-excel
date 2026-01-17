@@ -1,9 +1,6 @@
 package org.fanchuo.avroexcel.encoder;
 
-import java.text.ParsePosition;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.apache.avro.Schema;
@@ -14,6 +11,7 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.util.CellAddress;
 import org.fanchuo.avroexcel.excelutil.ErrorMessage;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
+import org.fanchuo.avroexcel.excelutil.TimestampParser;
 
 public class ExcelFieldParser {
   public abstract static class TypeParser {
@@ -97,16 +95,13 @@ public class ExcelFieldParser {
         }
       } else if (TIMESTAMP_LOGICAL_TYPES.contains(logicalType)) {
         if (cell.getCellType() == CellType.STRING) {
-          String str = cell.getStringCellValue();
-          ParsePosition position = new ParsePosition(0);
-          TemporalAccessor temporalAccessor =
-              DateTimeFormatter.ISO_INSTANT.parseUnresolved(str, position);
-          if (position.getErrorIndex() < 0) {
+          Instant instant = TimestampParser.parseDate(cell);
+          if (instant != null) {
             this.errorMessage = null;
-            this.value = Instant.from(temporalAccessor);
+            this.value = instant;
           } else {
             this.errorMessage =
-                new FormatErrorMessage("Cell format '%s' is not ISO8601 format", address, str);
+                new FormatErrorMessage("Cell format '%s' is not ISO8601 format", address, cell);
           }
         } else {
           this.errorMessage =

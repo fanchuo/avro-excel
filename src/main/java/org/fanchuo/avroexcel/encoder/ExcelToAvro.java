@@ -7,11 +7,11 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellAddress;
-import org.apache.poi.ss.util.CellRangeAddress;
 import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.ErrorMessage;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
+import org.fanchuo.avroexcel.headerinfo.CollectionDescriptor;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
 import org.slf4j.Logger;
@@ -19,16 +19,6 @@ import org.slf4j.LoggerFactory;
 
 public class ExcelToAvro {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExcelToAvro.class);
-
-  private static class CollectionDescriptor {
-    final int col;
-    final HeaderInfo headerInfo;
-
-    CollectionDescriptor(int col, HeaderInfo headerInfo) {
-      this.col = col;
-      this.headerInfo = headerInfo;
-    }
-  }
 
   private final ExcelSheetReader sheet;
   private final Schema schema;
@@ -84,18 +74,6 @@ public class ExcelToAvro {
     return new ExcelRecord(excelRecords, failure, RecordGeometry.ATOM, false);
   }
 
-  private int extractCollectionSize(int col, int row) {
-    Cell c = sheet.getCell(col, row);
-    if (c != null && c.getCellType() != CellType.BLANK) {
-      CellRangeAddress cellRangeAddress = sheet.getRangeAt(col, row);
-      if (cellRangeAddress == null) {
-        return 1;
-      }
-      return cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow() + 1;
-    }
-    return -1;
-  }
-
   private enum Choice {
     UNDEF,
     MAP,
@@ -134,11 +112,11 @@ public class ExcelToAvro {
         ParserTools.flatten(schemas, x -> x.getType() == Schema.Type.RECORD);
     for (HeaderInfo subHeader : headerInfo.subHeaders) {
       if ("*size".equals(subHeader.text)) {
-        arraySize = extractCollectionSize(colIdx, row);
+        arraySize = CollectionDescriptor.extractCollectionSize(this.sheet, colIdx, row);
       } else if ("*".equals(subHeader.text)) {
         arrayCol = new CollectionDescriptor(colIdx, subHeader);
       } else if ("#size".equals(subHeader.text)) {
-        mapSize = extractCollectionSize(colIdx, row);
+        mapSize = CollectionDescriptor.extractCollectionSize(this.sheet, colIdx, row);
       } else if ("#k".equals(subHeader.text)) {
         keyCol = new CollectionDescriptor(colIdx, subHeader);
       } else if ("#v".equals(subHeader.text)) {
