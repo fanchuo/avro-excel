@@ -19,6 +19,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.commons.io.IOUtils;
 import org.fanchuo.avroexcel.encoder.ExcelSchemaException;
+import org.fanchuo.avroexcel.infer.ExcelInferSchema;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,10 +79,12 @@ class AvroToExcelConverterTest {
       IOUtils.copy(r2, sw2);
     }
     Assertions.assertLinesMatch(Arrays.asList(sw2.toString().split("\n")), dump2);
+    Schema inferedSchema;
     try (InputStream is = new FileInputStream(excelFile)) {
-      Schema inferedSchema = ExcelInferSchema.inferSchema(is, "Avro Data", 1, 2);
-      System.out.println(inferedSchema);
+      inferedSchema = ExcelInferSchema.inferSchema(is, "Avro Data", 1, 2);
     }
+    ExcelToAvroConverter.convert(
+        excelFile, new ByteArrayOutputStream(), "Avro Data", 1, 2, inferedSchema);
   }
 
   @Test
