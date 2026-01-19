@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -61,7 +62,7 @@ class AvroToExcelConverterTest {
     URL url = getClass().getResource("/excel_awaited_dump.txt");
     assertNotNull(url);
     try (InputStream is = url.openStream();
-        Reader r = new InputStreamReader(is)) {
+        Reader r = new InputStreamReader(is, StandardCharsets.UTF_8)) {
       IOUtils.copy(r, sw);
     }
     Assertions.assertLinesMatch(Arrays.asList(sw.toString().split("\n")), dump);
@@ -75,7 +76,7 @@ class AvroToExcelConverterTest {
     URL url2 = getClass().getResource("/reencoded.jsons");
     assertNotNull(url2);
     try (InputStream is2 = url2.openStream();
-        Reader r2 = new InputStreamReader(is2)) {
+        Reader r2 = new InputStreamReader(is2, StandardCharsets.UTF_8)) {
       IOUtils.copy(r2, sw2);
     }
     Assertions.assertLinesMatch(Arrays.asList(sw2.toString().split("\n")), dump2);

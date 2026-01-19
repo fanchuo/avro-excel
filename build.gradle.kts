@@ -1,7 +1,9 @@
+import com.github.spotbugs.snom.SpotBugsTask
 plugins {
     id("java")
     id("jacoco")
     id("com.diffplug.spotless") version "6.25.0"
+    id("com.github.spotbugs") version "6.0.20"
 }
 
 group = "org.fanchuo.avroexcel"
@@ -24,6 +26,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    "spotbugsPlugins"("com.h3xstream.findsecbugs:findsecbugs-plugin:1.13.0")
 }
 
 tasks.test {
@@ -43,5 +46,25 @@ spotless {
     java {
         googleJavaFormat()
         endWithNewline()
+    }
+}
+
+
+spotbugs {
+    ignoreFailures.set(false)
+    showStackTraces.set(true)
+    showProgress.set(true)
+    effort.set(com.github.spotbugs.snom.Effort.MAX)
+    reportLevel.set(com.github.spotbugs.snom.Confidence.HIGH)
+}
+
+tasks.withType<SpotBugsTask>().configureEach {
+    reports {
+        create("html") {
+            required.set(true)
+        }
+        create("xml") {
+            required.set(false)
+        }
     }
 }
