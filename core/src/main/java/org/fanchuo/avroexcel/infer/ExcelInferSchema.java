@@ -27,6 +27,7 @@ public class ExcelInferSchema {
     return makeSchema(headerInfo, dataVisitor);
   }
 
+  private static final Type[] TYPES = Type.values();
   private static final Set<String> SPECIAL_COLS =
       new HashSet<>(Arrays.asList("*size", "#size", "#k", ".value"));
 
@@ -34,9 +35,9 @@ public class ExcelInferSchema {
     List<Schema> union = new ArrayList<>();
     boolean[] types = dataVisitor.schemas.get(headerInfo);
     if (types != null) {
-      for (int i = 0; i < Types.TYPES.length; i++) {
+      for (int i = 0; i < TYPES.length; i++) {
         if (types[i]) {
-          union.add(Types.TYPES[i].schema);
+          union.add(TYPES[i].schema);
         }
       }
     }

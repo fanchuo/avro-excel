@@ -14,7 +14,7 @@ import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 
 public class DataVisitor {
   private static boolean[] make(HeaderInfo hi) {
-    return new boolean[Types.TYPES.length];
+    return new boolean[Type.values().length];
   }
 
   final Map<HeaderInfo, boolean[]> schemas = new HashMap<>();
