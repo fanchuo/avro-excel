@@ -1,5 +1,10 @@
 plugins {
     `java-module`
+    application
+}
+
+application {
+    mainClass.set("org.fanchuo.avroexcel.cli.AvroExcel")
 }
 
 dependencies {

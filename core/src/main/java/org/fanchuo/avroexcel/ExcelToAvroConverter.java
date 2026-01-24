@@ -15,15 +15,11 @@ import org.fanchuo.avroexcel.headerinfo.HeaderInfoExcelReader;
 
 public class ExcelToAvroConverter {
   public static void convert(
-      File excelFile,
-      OutputStream avroOutputStream,
-      String sheetName,
-      int col,
-      int row,
-      Schema schema)
+      File excelFile, File avroFile, String sheetName, int col, int row, Schema schema)
       throws IOException, ExcelSchemaException {
-    try (InputStream is = new FileInputStream(excelFile)) {
-      convert(is, avroOutputStream, sheetName, col, row, schema);
+    try (InputStream is = new FileInputStream(excelFile);
+        OutputStream os = new FileOutputStream(avroFile)) {
+      convert(is, os, sheetName, col, row, schema);
     }
   }
 

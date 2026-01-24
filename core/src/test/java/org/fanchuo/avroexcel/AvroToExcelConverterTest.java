@@ -67,9 +67,7 @@ class AvroToExcelConverterTest {
     }
     Assertions.assertLinesMatch(Arrays.asList(sw.toString().split("\n")), dump);
     File backAvroFile = TEST_OUTPUT_DIR.resolve("back_users.avro").toFile();
-    try (FileOutputStream fos = new FileOutputStream(backAvroFile)) {
-      ExcelToAvroConverter.convert(excelFile, fos, "Avro Data", 1, 2, schema);
-    }
+    ExcelToAvroConverter.convert(excelFile, backAvroFile, "Avro Data", 1, 2, schema);
     List<String> dump2 = AvroDescriptor.convert(backAvroFile);
     System.out.println(String.join("\n", dump2));
     StringWriter sw2 = new StringWriter();
@@ -84,8 +82,9 @@ class AvroToExcelConverterTest {
     try (InputStream is = new FileInputStream(excelFile)) {
       inferedSchema = ExcelInferSchema.inferSchema(is, "Avro Data", 1, 2);
     }
-    ExcelToAvroConverter.convert(
-        excelFile, new ByteArrayOutputStream(), "Avro Data", 1, 2, inferedSchema);
+    File temp = File.createTempFile("test", ".avro");
+    temp.deleteOnExit();
+    ExcelToAvroConverter.convert(excelFile, temp, "Avro Data", 1, 2, inferedSchema);
   }
 
   @Test
