@@ -13,10 +13,15 @@ import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometryAvroReader;
 
 public class AvroToExcelConverter {
+  private static String makeSheetname(String sheetName) {
+    if (sheetName == null) return "tab";
+    return sheetName;
+  }
+
   public static void convert(File avroFile, File excelFile, String sheetName, int col, int row)
       throws IOException {
     try (AvroReader avroReader = new AvroReader(avroFile);
-        WorkbookWriter workbookWriter = new WorkbookWriter(excelFile, sheetName)) {
+        WorkbookWriter workbookWriter = new WorkbookWriter(excelFile, makeSheetname(sheetName))) {
       convert(col, row, avroReader, workbookWriter);
     }
   }
@@ -25,7 +30,7 @@ public class AvroToExcelConverter {
       InputStream avroStream, OutputStream excelStream, String sheetName, int col, int row)
       throws IOException {
     try (AvroReader avroReader = new AvroReader(avroStream);
-        WorkbookWriter workbookWriter = new WorkbookWriter(excelStream, sheetName)) {
+        WorkbookWriter workbookWriter = new WorkbookWriter(excelStream, makeSheetname(sheetName))) {
       convert(col, row, avroReader, workbookWriter);
     }
   }

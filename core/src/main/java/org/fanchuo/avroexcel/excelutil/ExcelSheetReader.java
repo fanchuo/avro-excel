@@ -62,7 +62,9 @@ public class ExcelSheetReader {
 
   public static ExcelSheetReader loadSheet(InputStream is, String sheetName) throws IOException {
     try (XSSFWorkbook workbook = new XSSFWorkbook(is)) {
-      Sheet sheet = workbook.getSheet(sheetName);
+      final Sheet sheet;
+      if (sheetName == null) sheet = workbook.getSheetAt(workbook.getActiveSheetIndex());
+      else sheet = workbook.getSheet(sheetName);
       return new ExcelSheetReader(sheet);
     }
   }
