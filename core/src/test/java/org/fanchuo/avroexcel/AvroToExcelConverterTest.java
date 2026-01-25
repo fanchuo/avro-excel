@@ -50,8 +50,7 @@ class AvroToExcelConverterTest {
 
     File excelFile = TEST_OUTPUT_DIR.resolve("users.xlsx").toFile();
 
-    AvroToExcelConverter converter = new AvroToExcelConverter();
-    converter.convert(avroFile, excelFile, "Avro Data", 1, 2);
+    AvroToExcelConverter.convert(avroFile, excelFile, "Avro Data", 1, 2);
 
     assertTrue(excelFile.exists());
     assertTrue(excelFile.length() > 0);
