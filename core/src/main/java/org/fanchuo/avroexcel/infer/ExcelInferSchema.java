@@ -62,7 +62,7 @@ public class ExcelInferSchema {
     } else if (union.isEmpty()) {
       return Type.NULL.schema;
     }
-    return union.getFirst();
+    return union.get(0);
   }
 
   private static boolean emptyLine(
