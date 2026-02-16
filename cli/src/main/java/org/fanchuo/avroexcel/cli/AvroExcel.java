@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 import org.apache.avro.Schema;
 import org.fanchuo.avroexcel.ExcelToAvroConverter;
+import org.fanchuo.avroexcel.encoder.ExcelFieldParser;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "AvroExcel", version = "1.0.0", mixinStandardHelpOptions = true)
@@ -51,7 +52,8 @@ public class AvroExcel implements Callable<Void> {
   @Override
   public Void call() throws Exception {
     Schema schema = new Schema.Parser().parse(schemaFile);
-    ExcelToAvroConverter.convert(inputFile, outputFile, tab, col, row, schema);
+    ExcelToAvroConverter.convert(
+        inputFile, outputFile, tab, col, row, schema, new ExcelFieldParser());
     return null;
   }
 }

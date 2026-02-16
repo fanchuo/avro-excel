@@ -24,11 +24,17 @@ public class ExcelToAvro {
   private final Schema schema;
   private final HeaderInfo headerInfo;
   private final int col;
-  private final ExcelFieldParser excelFieldParser = new ExcelFieldParser();
+  private final IExcelFieldParser excelFieldParser;
   private int row;
 
   public ExcelToAvro(
-      ExcelSheetReader sheet, Schema schema, HeaderInfo headerInfo, int col, int row) {
+      IExcelFieldParser excelFieldParser,
+      ExcelSheetReader sheet,
+      Schema schema,
+      HeaderInfo headerInfo,
+      int col,
+      int row) {
+    this.excelFieldParser = excelFieldParser;
     this.sheet = sheet;
     this.schema = schema;
     this.headerInfo = headerInfo;
