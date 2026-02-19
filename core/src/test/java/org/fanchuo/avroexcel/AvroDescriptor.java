@@ -11,8 +11,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
 
 public class AvroDescriptor {
-  public static List<String> convert(File avroFile) throws IOException {
-    GenericData genericData = AvroReader.makeGenericData();
+  public static List<String> convert(File avroFile, GenericData genericData) throws IOException {
     DatumReader<GenericRecord> datumReader = new GenericDatumReader<>(null, null, genericData);
     List<String> output = new ArrayList<>();
     try (DataFileReader<GenericRecord> dataFileReader =

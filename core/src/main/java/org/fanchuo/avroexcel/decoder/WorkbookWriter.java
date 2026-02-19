@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel;
+package org.fanchuo.avroexcel.decoder;
 
 import java.io.*;
 import java.time.LocalDate;

@@ -3,8 +3,8 @@ package org.fanchuo.avroexcel.cli;
 import java.io.File;
 import java.util.concurrent.Callable;
 import org.apache.avro.Schema;
-import org.fanchuo.avroexcel.ExcelToAvroConverter;
-import org.fanchuo.avroexcel.encoder.ExcelFieldParser;
+import org.fanchuo.avroexcel.converters.DefaultConverters;
+import org.fanchuo.avroexcel.encoder.ExcelToAvroConverter;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "AvroExcel", version = "1.0.0", mixinStandardHelpOptions = true)
@@ -53,7 +53,7 @@ public class AvroExcel implements Callable<Void> {
   public Void call() throws Exception {
     Schema schema = new Schema.Parser().parse(schemaFile);
     ExcelToAvroConverter.convert(
-        inputFile, outputFile, tab, col, row, schema, new ExcelFieldParser());
+        inputFile, outputFile, tab, col, row, schema, new DefaultConverters());
     return null;
   }
 }

@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel;
+package org.fanchuo.avroexcel.decoder;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.function.Consumer;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
+import org.fanchuo.avroexcel.converters.IConverters;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfoAvroSchemaReader;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
@@ -18,18 +19,24 @@ public class AvroToExcelConverter {
     return sheetName;
   }
 
-  public static void convert(File avroFile, File excelFile, String sheetName, int col, int row)
+  public static void convert(
+      File avroFile, File excelFile, String sheetName, int col, int row, IConverters converters)
       throws IOException {
-    try (AvroReader avroReader = new AvroReader(avroFile);
+    try (AvroReader avroReader = new AvroReader(avroFile, converters.makeGenericData());
         WorkbookWriter workbookWriter = new WorkbookWriter(excelFile, makeSheetname(sheetName))) {
       convert(col, row, avroReader, workbookWriter);
     }
   }
 
   public static void convert(
-      InputStream avroStream, OutputStream excelStream, String sheetName, int col, int row)
+      InputStream avroStream,
+      OutputStream excelStream,
+      String sheetName,
+      int col,
+      int row,
+      IConverters converters)
       throws IOException {
-    try (AvroReader avroReader = new AvroReader(avroStream);
+    try (AvroReader avroReader = new AvroReader(avroStream, converters.makeGenericData());
         WorkbookWriter workbookWriter = new WorkbookWriter(excelStream, makeSheetname(sheetName))) {
       convert(col, row, avroReader, workbookWriter);
     }
