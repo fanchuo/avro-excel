@@ -6,4 +6,6 @@ public interface IConverters {
   GenericData makeGenericData();
 
   IExcelFieldParser makeExcelFieldParser();
+
+  IExcelFieldFormater makeExcelFieldFormater();
 }

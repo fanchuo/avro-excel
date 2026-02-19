@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.fanchuo.avroexcel.converters.IConverters;
+import org.fanchuo.avroexcel.converters.Zone;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfoAvroSchemaReader;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
@@ -23,7 +24,9 @@ public class AvroToExcelConverter {
       File avroFile, File excelFile, String sheetName, int col, int row, IConverters converters)
       throws IOException {
     try (AvroReader avroReader = new AvroReader(avroFile, converters.makeGenericData());
-        WorkbookWriter workbookWriter = new WorkbookWriter(excelFile, makeSheetname(sheetName))) {
+        WorkbookWriter workbookWriter =
+            new WorkbookWriter(
+                excelFile, makeSheetname(sheetName), converters.makeExcelFieldFormater())) {
       convert(col, row, avroReader, workbookWriter);
     }
   }
@@ -37,7 +40,9 @@ public class AvroToExcelConverter {
       IConverters converters)
       throws IOException {
     try (AvroReader avroReader = new AvroReader(avroStream, converters.makeGenericData());
-        WorkbookWriter workbookWriter = new WorkbookWriter(excelStream, makeSheetname(sheetName))) {
+        WorkbookWriter workbookWriter =
+            new WorkbookWriter(
+                excelStream, makeSheetname(sheetName), converters.makeExcelFieldFormater())) {
       convert(col, row, avroReader, workbookWriter);
     }
   }
@@ -47,10 +52,10 @@ public class AvroToExcelConverter {
     Schema schema = avroReader.getSchema();
     HeaderInfo root = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
     workbookWriter.writeHeaders(col, row, root, row + root.rowSpan);
-    workbookWriter.color(col, row, root.colSpan, root.rowSpan, WorkbookWriter.Zone.HEADER);
+    workbookWriter.color(col, row, root.colSpan, root.rowSpan, Zone.HEADER);
     avroReader.process(
         new Consumer<>() {
-          WorkbookWriter.Zone zone = WorkbookWriter.Zone.ODD;
+          Zone zone = Zone.ODD;
           int idx = row + root.rowSpan;
 
           @Override
@@ -60,8 +65,8 @@ public class AvroToExcelConverter {
             workbookWriter.writeRecord(
                 record, root, recordGeometry, col, idx, idx + recordGeometry.rowSpan, zone);
             idx += recordGeometry.rowSpan;
-            if (zone == WorkbookWriter.Zone.EVEN) zone = WorkbookWriter.Zone.ODD;
-            else zone = WorkbookWriter.Zone.EVEN;
+            if (zone == Zone.EVEN) zone = Zone.ODD;
+            else zone = Zone.EVEN;
           }
         });
     workbookWriter.finalize(col, root.colSpan);

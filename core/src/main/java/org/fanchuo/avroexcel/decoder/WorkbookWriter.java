@@ -1,13 +1,13 @@
 package org.fanchuo.avroexcel.decoder;
 
 import java.io.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fanchuo.avroexcel.converters.IExcelFieldFormater;
+import org.fanchuo.avroexcel.converters.Zone;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
 import org.slf4j.Logger;
@@ -16,56 +16,21 @@ import org.slf4j.LoggerFactory;
 public class WorkbookWriter implements Closeable {
   private static final Logger LOGGER = LoggerFactory.getLogger(WorkbookWriter.class);
 
-  public enum Zone {
-    HEADER,
-    ODD,
-    EVEN,
-  }
-
   private final OutputStream outputStream;
   private final Workbook workbook = new XSSFWorkbook();
   private final Sheet sheet;
-  private final EnumMap<Zone, CellStyle> regularStyle = new EnumMap<>(Zone.class);
-  private final EnumMap<Zone, CellStyle> dateStyle = new EnumMap<>(Zone.class);
-  private final EnumMap<Zone, CellStyle> datetimeStyle = new EnumMap<>(Zone.class);
+  private final IExcelFieldFormater excelFieldFormater;
 
-  public WorkbookWriter(File excelFile, String sheetName) throws IOException {
-    this(new FileOutputStream(excelFile), sheetName);
+  public WorkbookWriter(File excelFile, String sheetName, IExcelFieldFormater excelFieldFormater)
+      throws IOException {
+    this(new FileOutputStream(excelFile), sheetName, excelFieldFormater);
   }
 
-  private CellStyle makeColor(IndexedColors indexedColor) {
-    CellStyle style = this.workbook.createCellStyle();
-    style.setVerticalAlignment(VerticalAlignment.TOP);
-    style.setFillForegroundColor(indexedColor.getIndex());
-    style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-    style.setBorderBottom(BorderStyle.THIN);
-    style.setBorderLeft(BorderStyle.THIN);
-    style.setBorderRight(BorderStyle.THIN);
-    style.setBorderTop(BorderStyle.THIN);
-    return style;
-  }
-
-  public WorkbookWriter(OutputStream outputStream, String sheetName) {
+  public WorkbookWriter(
+      OutputStream outputStream, String sheetName, IExcelFieldFormater excelFieldFormater) {
     this.sheet = workbook.createSheet(sheetName);
     this.outputStream = outputStream;
-    CellStyle headerStyle = this.makeColor(IndexedColors.LIGHT_YELLOW);
-    CellStyle regularOddStyle = this.makeColor(IndexedColors.WHITE);
-    CellStyle dateOddStyle = this.makeColor(IndexedColors.WHITE);
-    CellStyle datetimeOddStyle = this.makeColor(IndexedColors.WHITE);
-    CellStyle regularEvenStyle = this.makeColor(IndexedColors.GREY_25_PERCENT);
-    CellStyle dateEvenStyle = this.makeColor(IndexedColors.GREY_25_PERCENT);
-    CellStyle datetimeEvenStyle = this.makeColor(IndexedColors.GREY_25_PERCENT);
-    dateOddStyle.setDataFormat((short) 14);
-    datetimeOddStyle.setDataFormat((short) 22);
-    dateEvenStyle.setDataFormat((short) 14);
-    datetimeEvenStyle.setDataFormat((short) 22);
-    this.regularStyle.put(Zone.HEADER, headerStyle);
-    this.regularStyle.put(Zone.ODD, regularOddStyle);
-    this.regularStyle.put(Zone.EVEN, regularEvenStyle);
-    this.dateStyle.put(Zone.ODD, dateOddStyle);
-    this.dateStyle.put(Zone.EVEN, dateEvenStyle);
-    this.datetimeStyle.put(Zone.ODD, datetimeOddStyle);
-    this.datetimeStyle.put(Zone.EVEN, datetimeEvenStyle);
+    this.excelFieldFormater = excelFieldFormater;
   }
 
   private Row getRow(int row) {
@@ -105,7 +70,7 @@ public class WorkbookWriter implements Closeable {
   public void color(int col, int row, int width, int height, Zone zone) {
     for (int i = 0; i < width; i++) {
       for (int j = 0; j < height; j++) {
-        getCell(row + j, col + i).setCellStyle(this.regularStyle.get(zone));
+        this.excelFieldFormater.colorExcelField(getCell(row + j, col + i), zone);
       }
     }
   }
@@ -250,19 +215,7 @@ public class WorkbookWriter implements Closeable {
       }
     }
     Cell c = getCell(row, offset);
-    if (value instanceof Number) {
-      c.setCellValue(((Number) value).doubleValue());
-    } else if (value instanceof Boolean) {
-      c.setCellValue((Boolean) value);
-    } else if (value instanceof LocalDate) {
-      c.setCellValue((LocalDate) value);
-      c.setCellStyle(this.dateStyle.get(zone));
-    } else if (value instanceof LocalDateTime) {
-      c.setCellValue((LocalDateTime) value);
-      c.setCellStyle(this.datetimeStyle.get(zone));
-    } else {
-      c.setCellValue(String.valueOf(value));
-    }
+    excelFieldFormater.formatExcelField(c, value, zone);
     if (height > 1) {
       CellRangeAddress range = new CellRangeAddress(row, row + height - 1, offset, offset);
       this.sheet.addMergedRegion(range);

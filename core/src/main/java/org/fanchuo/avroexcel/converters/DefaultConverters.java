@@ -22,4 +22,9 @@ public class DefaultConverters implements IConverters {
   public IExcelFieldParser makeExcelFieldParser() {
     return new ExcelFieldParser();
   }
+
+  @Override
+  public IExcelFieldFormater makeExcelFieldFormater() {
+    return new ExcelFieldFormater();
+  }
 }
