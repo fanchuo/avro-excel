@@ -4,8 +4,18 @@ import org.apache.avro.data.TimeConversions;
 import org.apache.avro.generic.GenericData;
 
 public class DefaultConverters implements IConverters {
-  @Override
-  public GenericData makeGenericData() {
+
+  private final GenericData genericData;
+  private final IExcelFieldParser excelFieldParser;
+  private final IExcelFieldFormater excelFieldFormater;
+
+  public DefaultConverters() {
+    this.genericData = makeGenericData();
+    this.excelFieldParser = makeExcelFieldParser();
+    this.excelFieldFormater = makeExcelFieldFormater();
+  }
+
+  private GenericData makeGenericData() {
     GenericData genericData = GenericData.get();
     genericData.addLogicalTypeConversion(new TimeConversions.DateConversion());
     genericData.addLogicalTypeConversion(new TimeConversions.TimestampMillisConversion());
@@ -18,13 +28,26 @@ public class DefaultConverters implements IConverters {
     return genericData;
   }
 
-  @Override
-  public IExcelFieldParser makeExcelFieldParser() {
+  private IExcelFieldParser makeExcelFieldParser() {
     return new ExcelFieldParser();
   }
 
-  @Override
-  public IExcelFieldFormater makeExcelFieldFormater() {
+  private IExcelFieldFormater makeExcelFieldFormater() {
     return new ExcelFieldFormater();
+  }
+
+  @Override
+  public GenericData getGenericData() {
+    return genericData;
+  }
+
+  @Override
+  public IExcelFieldFormater getExcelFieldFormater() {
+    return excelFieldFormater;
+  }
+
+  @Override
+  public IExcelFieldParser getExcelFieldParser() {
+    return excelFieldParser;
   }
 }

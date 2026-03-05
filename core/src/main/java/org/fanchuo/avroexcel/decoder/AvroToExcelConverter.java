@@ -23,10 +23,10 @@ public class AvroToExcelConverter {
   public static void convert(
       File avroFile, File excelFile, String sheetName, int col, int row, IConverters converters)
       throws IOException {
-    try (AvroReader avroReader = new AvroReader(avroFile, converters.makeGenericData());
+    try (AvroReader avroReader = new AvroReader(avroFile, converters.getGenericData());
         WorkbookWriter workbookWriter =
             new WorkbookWriter(
-                excelFile, makeSheetname(sheetName), converters.makeExcelFieldFormater())) {
+                excelFile, makeSheetname(sheetName), converters.getExcelFieldFormater())) {
       convert(col, row, avroReader, workbookWriter);
     }
   }
@@ -39,10 +39,10 @@ public class AvroToExcelConverter {
       int row,
       IConverters converters)
       throws IOException {
-    try (AvroReader avroReader = new AvroReader(avroStream, converters.makeGenericData());
+    try (AvroReader avroReader = new AvroReader(avroStream, converters.getGenericData());
         WorkbookWriter workbookWriter =
             new WorkbookWriter(
-                excelStream, makeSheetname(sheetName), converters.makeExcelFieldFormater())) {
+                excelStream, makeSheetname(sheetName), converters.getExcelFieldFormater())) {
       convert(col, row, avroReader, workbookWriter);
     }
   }

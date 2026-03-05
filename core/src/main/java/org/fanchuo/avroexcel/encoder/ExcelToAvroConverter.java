@@ -41,14 +41,14 @@ public class ExcelToAvroConverter {
     HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, col, row);
     ExcelToAvro excelToAvro =
         new ExcelToAvro(
-            converters.makeExcelFieldParser(),
+            converters.getExcelFieldParser(),
             excelSheetReader,
             schema,
             headerInfo,
             col,
             row + headerInfo.rowSpan);
     GenericRecord record;
-    GenericData genericData = converters.makeGenericData();
+    GenericData genericData = converters.getGenericData();
     DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema, genericData);
     try (DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter)) {
       dataFileWriter.create(schema, avroOutputStream);

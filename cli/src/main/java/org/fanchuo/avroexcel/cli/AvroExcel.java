@@ -4,11 +4,18 @@ import java.io.File;
 import java.util.concurrent.Callable;
 import org.apache.avro.Schema;
 import org.fanchuo.avroexcel.converters.DefaultConverters;
+import org.fanchuo.avroexcel.decoder.AvroToExcelConverter;
 import org.fanchuo.avroexcel.encoder.ExcelToAvroConverter;
+import org.fanchuo.avroexcel.infer.ExcelInferSchema;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "AvroExcel", version = "1.0.0", mixinStandardHelpOptions = true)
 public class AvroExcel implements Callable<Void> {
+
+  private enum Encoding {
+    EXCEL_TO_AVRO,
+    AVRO_TO_EXCEL
+  }
 
   @CommandLine.Option(
       names = {"-i"},
@@ -44,6 +51,11 @@ public class AvroExcel implements Callable<Void> {
       description = "Origin tab in Excel")
   private String tab;
 
+  @CommandLine.Option(
+      names = {"-e"},
+      description = "Encoding type")
+  private Encoding encoding;
+
   public static void main(String[] args) {
     int exitCode = new CommandLine(new AvroExcel()).execute(args);
     System.exit(exitCode);
@@ -51,9 +63,21 @@ public class AvroExcel implements Callable<Void> {
 
   @Override
   public Void call() throws Exception {
-    Schema schema = new Schema.Parser().parse(schemaFile);
-    ExcelToAvroConverter.convert(
-        inputFile, outputFile, tab, col, row, schema, new DefaultConverters());
+    switch (encoding) {
+      case EXCEL_TO_AVRO:
+        Schema schema;
+        if (schemaFile != null) {
+          schema = new Schema.Parser().parse(schemaFile);
+        } else {
+          schema = ExcelInferSchema.inferSchema(schemaFile, tab, col, row);
+        }
+        ExcelToAvroConverter.convert(
+            inputFile, outputFile, tab, col, row, schema, new DefaultConverters());
+        break;
+      case AVRO_TO_EXCEL:
+        AvroToExcelConverter.convert(inputFile, outputFile, tab, col, row, new DefaultConverters());
+        break;
+    }
     return null;
   }
 }

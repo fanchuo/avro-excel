@@ -1,5 +1,6 @@
 package org.fanchuo.avroexcel.infer;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -12,6 +13,13 @@ import org.fanchuo.avroexcel.headerinfo.HeaderInfoExcelReader;
 
 public class ExcelInferSchema {
   private ExcelInferSchema() {}
+
+  public static Schema inferSchema(File inputFile, String sheetName, int col, int row)
+      throws IOException, InferSchemaException {
+    try (InputStream is = new java.io.FileInputStream(inputFile)) {
+      return inferSchema(is, sheetName, col, row);
+    }
+  }
 
   public static Schema inferSchema(InputStream inputStream, String sheetName, int col, int row)
       throws IOException, InferSchemaException {

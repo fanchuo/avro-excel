@@ -3,9 +3,9 @@ package org.fanchuo.avroexcel.converters;
 import org.apache.avro.generic.GenericData;
 
 public interface IConverters {
-  GenericData makeGenericData();
+  GenericData getGenericData();
 
-  IExcelFieldParser makeExcelFieldParser();
+  IExcelFieldParser getExcelFieldParser();
 
-  IExcelFieldFormater makeExcelFieldFormater();
+  IExcelFieldFormater getExcelFieldFormater();
 }

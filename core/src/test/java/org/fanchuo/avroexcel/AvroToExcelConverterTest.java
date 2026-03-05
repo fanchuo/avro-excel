@@ -33,7 +33,7 @@ class AvroToExcelConverterTest {
 
   private static final Path TEST_OUTPUT_DIR = Path.of("build", "test-output");
   private final IConverters converters = new DefaultConverters();
-  private final GenericData genericData = converters.makeGenericData();
+  private final GenericData genericData = converters.getGenericData();
 
   @BeforeEach
   void setUp() throws IOException {
