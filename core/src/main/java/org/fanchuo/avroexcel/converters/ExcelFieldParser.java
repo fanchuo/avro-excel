@@ -14,35 +14,42 @@ import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 import org.fanchuo.avroexcel.excelutil.TimestampParser;
 
 public class ExcelFieldParser implements IExcelFieldParser {
+
+  private abstract static class TypeParser {
+
+    public abstract ParserResult analyze(Schema schema, Cell cell, CellAddress address);
+  }
+
   static class EnumExcelFieldParser extends TypeParser {
     @Override
-    public void analyze(Schema schema, Cell cell, CellAddress address) {
+    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
       if (cell.getCellType() == CellType.STRING) {
         String str = cell.getStringCellValue();
         if (schema.getEnumSymbols().contains(str)) {
-          this.errorMessage = null;
-          this.value = new GenericData.EnumSymbol(schema, str);
+          return new ParserResult(null, new GenericData.EnumSymbol(schema, str));
         } else {
-          this.errorMessage =
+          return new ParserResult(
               new FormatErrorMessage(
-                  "'%s' is not one of %s", address, str, schema.getEnumSymbols());
+                  "'%s' is not one of %s", address, str, schema.getEnumSymbols()),
+              null);
         }
       } else {
-        this.errorMessage =
-            new FormatErrorMessage("Cell type '%s' is not STRING", address, cell.getCellType());
+        return new ParserResult(
+            new FormatErrorMessage("Cell type '%s' is not STRING", address, cell.getCellType()),
+            null);
       }
     }
   }
 
   static class StringExcelFieldParser extends TypeParser {
     @Override
-    public void analyze(Schema schema, Cell cell, CellAddress address) {
+    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
       if (cell.getCellType() == CellType.STRING) {
-        this.errorMessage = null;
-        this.value = cell.getStringCellValue();
+        return new ParserResult(null, cell.getStringCellValue());
       } else {
-        this.errorMessage =
-            new FormatErrorMessage("Cell type '%s' is not STRING", address, cell.getCellType());
+        return new ParserResult(
+            new FormatErrorMessage("Cell type '%s' is not STRING", address, cell.getCellType()),
+            null);
       }
     }
   }
@@ -65,43 +72,44 @@ public class ExcelFieldParser implements IExcelFieldParser {
     abstract T getIntValue(double v);
 
     @Override
-    public void analyze(Schema schema, Cell cell, CellAddress address) {
+    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
       String logicalType =
           schema.getLogicalType() == null ? null : schema.getLogicalType().getName();
       if (logicalType != null && LOCALDATE_LOGICAL_TYPES.contains(logicalType)) {
         if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
-          this.errorMessage = null;
           if ("date".equals(logicalType))
-            this.value = cell.getLocalDateTimeCellValue().toLocalDate();
+            return new ParserResult(null, cell.getLocalDateTimeCellValue().toLocalDate());
           else if (logicalType.startsWith("time-"))
-            this.value = cell.getLocalDateTimeCellValue().toLocalTime();
-          else this.value = cell.getLocalDateTimeCellValue();
+            return new ParserResult(null, cell.getLocalDateTimeCellValue().toLocalTime());
+          else return new ParserResult(null, cell.getLocalDateTimeCellValue());
         } else {
-          this.errorMessage =
+          return new ParserResult(
               new FormatErrorMessage(
                   "Not a date cell type (type: %s, format: %s)",
-                  address, cell.getCellType(), cell.getCellStyle().getDataFormat());
+                  address, cell.getCellType(), cell.getCellStyle().getDataFormat()),
+              null);
         }
       } else if (TIMESTAMP_LOGICAL_TYPES.contains(logicalType)) {
         if (cell.getCellType() == CellType.STRING) {
           Instant instant = TimestampParser.parseDate(cell);
           if (instant != null) {
-            this.errorMessage = null;
-            this.value = instant;
+            return new ParserResult(null, instant);
           } else {
-            this.errorMessage =
-                new FormatErrorMessage("Cell format '%s' is not ISO8601 format", address, cell);
+            return new ParserResult(
+                new FormatErrorMessage("Cell format '%s' is not ISO8601 format", address, cell),
+                null);
           }
         } else {
-          this.errorMessage =
-              new FormatErrorMessage("Cell type '%s' is not STRING", address, cell.getCellType());
+          return new ParserResult(
+              new FormatErrorMessage("Cell type '%s' is not STRING", address, cell.getCellType()),
+              null);
         }
       } else if (cell.getCellType() == CellType.NUMERIC) {
-        this.errorMessage = null;
-        this.value = getIntValue(cell.getNumericCellValue());
+        return new ParserResult(null, getIntValue(cell.getNumericCellValue()));
       } else {
-        this.errorMessage =
-            new FormatErrorMessage("Cell type '%s' is not NUMERIC", address, cell.getCellType());
+        return new ParserResult(
+            new FormatErrorMessage("Cell type '%s' is not NUMERIC", address, cell.getCellType()),
+            null);
       }
     }
   }
@@ -124,13 +132,13 @@ public class ExcelFieldParser implements IExcelFieldParser {
     abstract T getFloatValue(double v);
 
     @Override
-    public void analyze(Schema schema, Cell cell, CellAddress address) {
+    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
       if (cell.getCellType() == CellType.NUMERIC) {
-        this.errorMessage = null;
-        this.value = getFloatValue(cell.getNumericCellValue());
+        return new ParserResult(null, getFloatValue(cell.getNumericCellValue()));
       } else {
-        this.errorMessage =
-            new FormatErrorMessage("Cell type '%s' is not NUMERIC", address, cell.getCellType());
+        return new ParserResult(
+            new FormatErrorMessage("Cell type '%s' is not NUMERIC", address, cell.getCellType()),
+            null);
       }
     }
   }
@@ -151,13 +159,13 @@ public class ExcelFieldParser implements IExcelFieldParser {
 
   static class BooleanExcelFieldParser extends TypeParser {
     @Override
-    public void analyze(Schema schema, Cell cell, CellAddress address) {
+    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
       if (cell.getCellType() == CellType.BOOLEAN || cell.getCellType() == CellType.FORMULA) {
-        this.errorMessage = null;
-        this.value = cell.getBooleanCellValue();
+        return new ParserResult(null, cell.getBooleanCellValue());
       } else {
-        this.errorMessage =
-            new FormatErrorMessage("Cell type '%s' is not BOOLEAN", address, cell.getCellType());
+        return new ParserResult(
+            new FormatErrorMessage("Cell type '%s' is not BOOLEAN", address, cell.getCellType()),
+            null);
       }
     }
   }
@@ -174,18 +182,16 @@ public class ExcelFieldParser implements IExcelFieldParser {
     registry.put(Schema.Type.BOOLEAN, new BooleanExcelFieldParser());
   }
 
-  public TypeParser checkCompatible(Schema s, Cell cell, CellAddress address) {
+  public ParserResult checkCompatible(Schema s, Cell cell, CellAddress address) {
     List<Schema> schemas = ParserTools.flatten(s, x -> registry.containsKey(x.getType()));
-    TypeParser stringTypeParser = null;
+    ParserResult stringTypeParser = null;
     for (Schema schema : schemas) {
       TypeParser typeParser = registry.get(schema.getType());
-      typeParser.errorMessage = new FormatErrorMessage("Parsing failed", address);
-      typeParser.value = null;
-      typeParser.analyze(schema, cell, address);
+      ParserResult result = typeParser.analyze(schema, cell, address);
       if (schema.getType() == Schema.Type.STRING) {
-        stringTypeParser = typeParser;
+        stringTypeParser = result;
       } else {
-        return typeParser;
+        return result;
       }
     }
     return stringTypeParser;

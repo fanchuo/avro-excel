@@ -7,7 +7,6 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellAddress;
-import org.fanchuo.avroexcel.converters.ExcelFieldParser;
 import org.fanchuo.avroexcel.converters.IExcelFieldParser;
 import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.ErrorMessage;
@@ -72,11 +71,11 @@ public class ExcelToAvro {
     Map<Schema, Object> excelRecords = new HashMap<>();
     Map<Schema, ErrorMessage> failure = new HashMap<>();
     for (Schema schema : schemas) {
-      ExcelFieldParser.TypeParser typeParser =
+      var parserResult =
           this.excelFieldParser.checkCompatible(schema, c, new CellAddress(row, col));
-      if (typeParser.isCompatible()) {
-        excelRecords.put(schema, typeParser.value);
-      } else failure.put(schema, typeParser.errorMessage);
+      if (parserResult.isCompatible()) {
+        excelRecords.put(schema, parserResult.value);
+      } else failure.put(schema, parserResult.errorMessage);
     }
     LOGGER.debug("return scalar - {}", excelRecords);
     return new ExcelRecord(excelRecords, failure, RecordGeometry.ATOM, false);
