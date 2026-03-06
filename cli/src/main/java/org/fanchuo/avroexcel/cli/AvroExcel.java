@@ -69,7 +69,7 @@ public class AvroExcel implements Callable<Void> {
         if (schemaFile != null) {
           schema = new Schema.Parser().parse(schemaFile);
         } else {
-          schema = ExcelInferSchema.inferSchema(schemaFile, tab, col, row);
+          schema = ExcelInferSchema.inferSchema(inputFile, tab, col, row);
         }
         ExcelToAvroConverter.convert(
             inputFile, outputFile, tab, col, row, schema, new DefaultConverters());
