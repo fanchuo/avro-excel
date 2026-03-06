@@ -6,4 +6,6 @@ import org.apache.poi.ss.util.CellAddress;
 
 public interface IExcelFieldParser {
   ParserResult checkCompatible(Schema s, Cell cell, CellAddress address);
+
+  Type guessType(Cell cell, CellAddress address) throws InferSchemaException;
 }

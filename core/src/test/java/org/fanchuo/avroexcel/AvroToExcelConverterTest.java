@@ -85,7 +85,8 @@ class AvroToExcelConverterTest {
     Assertions.assertLinesMatch(Arrays.asList(sw2.toString().split("\n")), dump2);
     Schema inferedSchema;
     try (InputStream is = new FileInputStream(excelFile)) {
-      inferedSchema = ExcelInferSchema.inferSchema(is, "Avro Data", 1, 2);
+      inferedSchema =
+          ExcelInferSchema.inferSchema(is, "Avro Data", 1, 2, converters.getExcelFieldParser());
     }
     File temp = File.createTempFile("test", ".avro");
     temp.deleteOnExit();

@@ -25,7 +25,6 @@ public class ExcelFieldFormater implements IExcelFieldFormater {
 
   @Override
   public void formatExcelField(Cell c, Object value, Zone zone) {
-    Workbook workbook = c.getSheet().getWorkbook();
     if (value instanceof Number) {
       c.setCellValue(((Number) value).doubleValue());
     } else if (value instanceof Boolean) {

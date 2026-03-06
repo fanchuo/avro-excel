@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.infer;
+package org.fanchuo.avroexcel.converters;
 
 import org.apache.avro.Schema;
 
@@ -10,7 +10,7 @@ public enum Type {
   TIMESTAMP(Schemas.DATETIME),
   BOOL(Schema.create(Schema.Type.BOOLEAN));
 
-  final Schema schema;
+  public final Schema schema;
 
   Type(Schema schema) {
     this.schema = schema;

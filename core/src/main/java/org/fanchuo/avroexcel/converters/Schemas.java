@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.infer;
+package org.fanchuo.avroexcel.converters;
 
 import org.apache.avro.Schema;
 

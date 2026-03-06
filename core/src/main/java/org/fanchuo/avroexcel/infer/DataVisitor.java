@@ -1,18 +1,23 @@
 package org.fanchuo.avroexcel.infer;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.util.CellAddress;
+import org.fanchuo.avroexcel.converters.IExcelFieldParser;
+import org.fanchuo.avroexcel.converters.InferSchemaException;
+import org.fanchuo.avroexcel.converters.Type;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
-import org.fanchuo.avroexcel.excelutil.TimestampParser;
 import org.fanchuo.avroexcel.headerinfo.CollectionDescriptor;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 
 public class DataVisitor {
+  private final IExcelFieldParser fieldParser;
+
+  public DataVisitor(IExcelFieldParser fieldParser) {
+    this.fieldParser = fieldParser;
+  }
+
   private static boolean[] make(HeaderInfo hi) {
     return new boolean[Type.values().length];
   }
@@ -29,7 +34,7 @@ public class DataVisitor {
       throws InferSchemaException {
     List<HeaderInfo> subHeaders = headerInfo.subHeaders;
     if (subHeaders == null || subHeaders.isEmpty()) {
-      Type type = visitScalar(excelSheetReader, col, row);
+      Type type = visitScalar(excelSheetReader, col, row, this.fieldParser);
       this.schemas.computeIfAbsent(headerInfo, DataVisitor::make)[type.ordinal()] = true;
       return 1;
     }
@@ -42,7 +47,7 @@ public class DataVisitor {
     for (HeaderInfo subHeader : subHeaders) {
       String colName = subHeader.text;
       if (".value".equals(colName)) {
-        Type type = visitScalar(excelSheetReader, colPos, row);
+        Type type = visitScalar(excelSheetReader, colPos, row, this.fieldParser);
         if (type != Type.NULL) {
           this.schemas.computeIfAbsent(headerInfo, DataVisitor::make)[type.ordinal()] = true;
           return 1;
@@ -82,29 +87,9 @@ public class DataVisitor {
     return result;
   }
 
-  private static Type visitScalar(ExcelSheetReader excelSheetReader, int col, int row)
+  private static Type visitScalar(
+      ExcelSheetReader excelSheetReader, int col, int row, IExcelFieldParser fieldParser)
       throws InferSchemaException {
-    Cell cell = excelSheetReader.getCell(col, row);
-    if (cell == null) return Type.NULL;
-    switch (cell.getCellType()) {
-      case BOOLEAN:
-      case FORMULA:
-        return Type.BOOL;
-      case BLANK:
-        return Type.NULL;
-      case STRING:
-        Instant instant = TimestampParser.parseDate(cell);
-        if (instant != null) return Type.TIMESTAMP;
-        return Type.STRING;
-      case NUMERIC:
-        if (DateUtil.isCellDateFormatted(cell)) return Type.LOCAL_DATE;
-        return Type.DOUBLE;
-      default:
-        CellAddress address = new CellAddress(row, col);
-        throw new InferSchemaException(
-            String.format(
-                "Cannot encode value '%s' of type '%s' in cell '%s'",
-                cell, cell.getCellStyle(), address));
-    }
+    return fieldParser.guessType(excelSheetReader.getCell(col, row), new CellAddress(row, col));
   }
 }

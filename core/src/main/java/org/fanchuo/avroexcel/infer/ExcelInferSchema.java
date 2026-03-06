@@ -7,6 +7,9 @@ import java.util.*;
 import org.apache.avro.Schema;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.fanchuo.avroexcel.converters.IExcelFieldParser;
+import org.fanchuo.avroexcel.converters.InferSchemaException;
+import org.fanchuo.avroexcel.converters.Type;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfoExcelReader;
@@ -14,19 +17,21 @@ import org.fanchuo.avroexcel.headerinfo.HeaderInfoExcelReader;
 public class ExcelInferSchema {
   private ExcelInferSchema() {}
 
-  public static Schema inferSchema(File inputFile, String sheetName, int col, int row)
+  public static Schema inferSchema(
+      File inputFile, String sheetName, int col, int row, IExcelFieldParser fieldParser)
       throws IOException, InferSchemaException {
     try (InputStream is = new java.io.FileInputStream(inputFile)) {
-      return inferSchema(is, sheetName, col, row);
+      return inferSchema(is, sheetName, col, row, fieldParser);
     }
   }
 
-  public static Schema inferSchema(InputStream inputStream, String sheetName, int col, int row)
+  public static Schema inferSchema(
+      InputStream inputStream, String sheetName, int col, int row, IExcelFieldParser fieldParser)
       throws IOException, InferSchemaException {
     ExcelSheetReader excelSheetReader = ExcelSheetReader.loadSheet(inputStream, sheetName);
     HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, col, row);
     row += headerInfo.rowSpan;
-    DataVisitor dataVisitor = new DataVisitor();
+    DataVisitor dataVisitor = new DataVisitor(fieldParser);
     while (!emptyLine(excelSheetReader, col, row, headerInfo)) {
       int rowSpan = dataVisitor.visitSheet(excelSheetReader, col, row, headerInfo);
       if (rowSpan <= 0) break;

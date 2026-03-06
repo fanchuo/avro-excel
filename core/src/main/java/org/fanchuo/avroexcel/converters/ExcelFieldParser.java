@@ -196,4 +196,28 @@ public class ExcelFieldParser implements IExcelFieldParser {
     }
     return stringTypeParser;
   }
+
+  @Override
+  public Type guessType(Cell cell, CellAddress address) throws InferSchemaException {
+    if (cell == null) return Type.NULL;
+    switch (cell.getCellType()) {
+      case BOOLEAN:
+      case FORMULA:
+        return Type.BOOL;
+      case BLANK:
+        return Type.NULL;
+      case STRING:
+        Instant instant = TimestampParser.parseDate(cell);
+        if (instant != null) return Type.TIMESTAMP;
+        return Type.STRING;
+      case NUMERIC:
+        if (DateUtil.isCellDateFormatted(cell)) return Type.LOCAL_DATE;
+        return Type.DOUBLE;
+      default:
+        throw new InferSchemaException(
+            String.format(
+                "Cannot encode value '%s' of type '%s' in cell '%s'",
+                cell, cell.getCellStyle(), address));
+    }
+  }
 }
