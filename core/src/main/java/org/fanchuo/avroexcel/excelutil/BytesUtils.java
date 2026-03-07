@@ -1,0 +1,20 @@
+package org.fanchuo.avroexcel.excelutil;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+public class BytesUtils {
+  public static String bytesToString(ByteBuffer byteBuffer) {
+    ByteBuffer b64 = Base64.getEncoder().encode(byteBuffer);
+    int remaining = b64.remaining();
+    byte[] bytes = new byte[remaining];
+    b64.get(bytes);
+    return new String(bytes, StandardCharsets.UTF_8);
+  }
+
+  public static ByteBuffer stringToBytes(String str) {
+    byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+    return Base64.getDecoder().decode(ByteBuffer.wrap(bytes));
+  }
+}

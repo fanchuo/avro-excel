@@ -1,9 +1,11 @@
 package org.fanchuo.avroexcel.converters;
 
+import java.nio.ByteBuffer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import org.apache.poi.ss.usermodel.*;
+import org.fanchuo.avroexcel.excelutil.BytesUtils;
 
 public class ExcelFieldFormater implements IExcelFieldFormater {
 
@@ -29,6 +31,9 @@ public class ExcelFieldFormater implements IExcelFieldFormater {
       c.setCellValue(((Number) value).doubleValue());
     } else if (value instanceof Boolean) {
       c.setCellValue((Boolean) value);
+    } else if (value instanceof ByteBuffer) {
+      ByteBuffer bb = (ByteBuffer) value;
+      c.setCellValue(BytesUtils.bytesToString(bb));
     } else if (value instanceof LocalDate) {
       c.setCellValue((LocalDate) value);
       c.setCellStyle(this.makeDateStyle(zone, c));
