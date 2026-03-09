@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +22,7 @@ import org.apache.avro.io.DatumWriter;
 import org.apache.commons.io.IOUtils;
 import org.fanchuo.avroexcel.converters.DefaultConverters;
 import org.fanchuo.avroexcel.converters.IConverters;
+import org.fanchuo.avroexcel.converters.InferSchemaException;
 import org.fanchuo.avroexcel.decoder.AvroToExcelConverter;
 import org.fanchuo.avroexcel.encoder.ExcelSchemaException;
 import org.fanchuo.avroexcel.encoder.ExcelToAvroConverter;
@@ -214,6 +216,45 @@ class AvroToExcelConverterTest {
   }
 
   @Test
+  public void validateByteBuffer() throws IOException, ExcelSchemaException, InferSchemaException {
+    Schema bytes = Schema.create(Schema.Type.BYTES);
+    Schema schema =
+        Schema.createRecord(
+            "test", null, null, false, Collections.singletonList(new Schema.Field("a", bytes)));
+    File avroFile = TEST_OUTPUT_DIR.resolve("items.avro").toFile();
+    createSampleAvroFile2(avroFile, schema);
+
+    File excelFile = TEST_OUTPUT_DIR.resolve("items.xlsx").toFile();
+    AvroToExcelConverter.convert(avroFile, excelFile, "A", 0, 0, converters);
+
+    assertTrue(excelFile.exists());
+    assertTrue(excelFile.length() > 0);
+
+    List<String> dump = ExcelWorkbookDescriptor.dump(excelFile, "A");
+    System.out.println(String.join("\n", dump));
+    StringWriter sw = new StringWriter();
+    URL url = getClass().getResource("/excel_awaited_dump2.txt");
+    assertNotNull(url);
+    try (InputStream is = url.openStream();
+        Reader r = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+      IOUtils.copy(r, sw);
+    }
+    Assertions.assertLinesMatch(Arrays.asList(sw.toString().split("\n")), dump);
+    File backAvroFile = TEST_OUTPUT_DIR.resolve("back_items.avro").toFile();
+    ExcelToAvroConverter.convert(excelFile, backAvroFile, "A", 0, 0, schema, converters);
+    List<String> dump2 = AvroDescriptor.convert(backAvroFile, genericData);
+    System.out.println(String.join("\n", dump2));
+    StringWriter sw2 = new StringWriter();
+    URL url2 = getClass().getResource("/reencoded2.jsons");
+    assertNotNull(url2);
+    try (InputStream is2 = url2.openStream();
+        Reader r2 = new InputStreamReader(is2, StandardCharsets.UTF_8)) {
+      IOUtils.copy(r2, sw2);
+    }
+    Assertions.assertLinesMatch(Arrays.asList(sw2.toString().split("\n")), dump2);
+  }
+
+  @Test
   public void validate5() throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Schema enumA = Schema.createEnum("enumA", null, null, Arrays.asList("c", "d"));
@@ -399,6 +440,18 @@ class AvroToExcelConverterTest {
       pointToo.put("y", "JKL");
       user3.put("lst3", pointToo);
       dataFileWriter.append(user3);
+    }
+  }
+
+  private void createSampleAvroFile2(File file, Schema schema) throws IOException {
+    DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema, genericData);
+    try (DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter)) {
+      dataFileWriter.create(schema, file);
+
+      // Item 1
+      GenericRecord item = new GenericData.Record(schema);
+      item.put("a", ByteBuffer.wrap(new byte[] {1, 2, 3}));
+      dataFileWriter.append(item);
     }
   }
 }

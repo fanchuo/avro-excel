@@ -191,7 +191,7 @@ public class ExcelFieldParser implements IExcelFieldParser {
     registry.put(Schema.Type.FLOAT, new FloatExcelFieldParser());
     registry.put(Schema.Type.DOUBLE, new DoubleExcelFieldParser());
     registry.put(Schema.Type.BOOLEAN, new BooleanExcelFieldParser());
-    registry.put(Schema.Type.BYTES, new BooleanExcelFieldParser());
+    registry.put(Schema.Type.BYTES, new BytesExcelFieldParser());
   }
 
   public ParserResult checkCompatible(Schema s, Cell cell, CellAddress address) {
