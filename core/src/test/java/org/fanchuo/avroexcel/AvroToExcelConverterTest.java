@@ -218,9 +218,14 @@ class AvroToExcelConverterTest {
   @Test
   public void validateByteBuffer() throws IOException, ExcelSchemaException, InferSchemaException {
     Schema bytes = Schema.create(Schema.Type.BYTES);
+    Schema fixed = Schema.createFixed("myfixed", null, null, 4);
     Schema schema =
         Schema.createRecord(
-            "test", null, null, false, Collections.singletonList(new Schema.Field("a", bytes)));
+            "test",
+            null,
+            null,
+            false,
+            Arrays.asList(new Schema.Field("a", bytes), new Schema.Field("b", fixed)));
     File avroFile = TEST_OUTPUT_DIR.resolve("items.avro").toFile();
     createSampleAvroFile2(avroFile, schema);
 
@@ -451,6 +456,7 @@ class AvroToExcelConverterTest {
       // Item 1
       GenericRecord item = new GenericData.Record(schema);
       item.put("a", ByteBuffer.wrap(new byte[] {1, 2, 3}));
+      item.put("b", new GenericData.Fixed(schema.getField("b").schema(), new byte[] {4, 5, 6, 7}));
       dataFileWriter.append(item);
     }
   }

@@ -1,2 +1,4 @@
 Cell: A1 = a
+Cell: B1 = b
 Cell: A2 = AQID
+Cell: B2 = BAUGBw==

@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.EnumMap;
+import org.apache.avro.generic.GenericFixed;
 import org.apache.poi.ss.usermodel.*;
 import org.fanchuo.avroexcel.excelutil.BytesUtils;
 
@@ -34,6 +35,9 @@ public class ExcelFieldFormater implements IExcelFieldFormater {
     } else if (value instanceof ByteBuffer) {
       ByteBuffer bb = (ByteBuffer) value;
       c.setCellValue(BytesUtils.bytesToString(bb));
+    } else if (value instanceof GenericFixed) {
+      GenericFixed f = (GenericFixed) value;
+      c.setCellValue(BytesUtils.bytesToString(f.bytes()));
     } else if (value instanceof LocalDate) {
       c.setCellValue((LocalDate) value);
       c.setCellStyle(this.makeDateStyle(zone, c));

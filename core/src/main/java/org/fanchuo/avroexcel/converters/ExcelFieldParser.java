@@ -181,6 +181,28 @@ public class ExcelFieldParser implements IExcelFieldParser {
     }
   }
 
+  static class FixedExcelFieldParser extends TypeParser {
+    @Override
+    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
+      if (cell.getCellType() == CellType.STRING) {
+        try {
+          return new ParserResult(
+              null,
+              new GenericData.Fixed(
+                  schema, BytesUtils.stringToByteArray(cell.getStringCellValue())));
+        } catch (IllegalArgumentException e) {
+          return new ParserResult(
+              new FormatErrorMessage(
+                  "Cell value '%s' is not base 64 encoded", address, cell.getStringCellValue()),
+              null);
+        }
+      }
+      return new ParserResult(
+          new FormatErrorMessage("Cell type '%s' is not a string", address, cell.getCellType()),
+          null);
+    }
+  }
+
   private final EnumMap<Schema.Type, TypeParser> registry = new EnumMap<>(Schema.Type.class);
 
   public ExcelFieldParser() {
@@ -192,6 +214,7 @@ public class ExcelFieldParser implements IExcelFieldParser {
     registry.put(Schema.Type.DOUBLE, new DoubleExcelFieldParser());
     registry.put(Schema.Type.BOOLEAN, new BooleanExcelFieldParser());
     registry.put(Schema.Type.BYTES, new BytesExcelFieldParser());
+    registry.put(Schema.Type.FIXED, new FixedExcelFieldParser());
   }
 
   public ParserResult checkCompatible(Schema s, Cell cell, CellAddress address) {

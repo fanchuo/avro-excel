@@ -13,8 +13,18 @@ public class BytesUtils {
     return new String(bytes, StandardCharsets.UTF_8);
   }
 
+  public static String bytesToString(byte[] bytes) {
+    byte[] b64 = Base64.getEncoder().encode(bytes);
+    return new String(b64, StandardCharsets.UTF_8);
+  }
+
   public static ByteBuffer stringToBytes(String str) {
     byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
     return Base64.getDecoder().decode(ByteBuffer.wrap(bytes));
+  }
+
+  public static byte[] stringToByteArray(String str) {
+    byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+    return Base64.getDecoder().decode(bytes);
   }
 }
