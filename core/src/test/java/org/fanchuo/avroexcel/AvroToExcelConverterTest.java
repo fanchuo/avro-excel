@@ -120,12 +120,12 @@ class AvroToExcelConverterTest {
     } catch (ExcelSchemaException e) {
       assertEquals(
           "Caused by:\n"
-              + "  [A3] Cannot match schema [RECORD test [field_txt, field_num, field_bool, field_date, field_time], \"null\"]\n"
+              + "  [A4] Cannot match schema [RECORD test [field_txt, field_num, field_bool, field_date, field_time], \"null\"]\n"
               + "  Caused by:\n"
-              + "    [A3] Cannot match schema RECORD test [field_txt, field_num, field_bool, field_date, field_time]\n"
+              + "    [A4] Cannot match schema RECORD test [field_txt, field_num, field_bool, field_date, field_time]\n"
               + "    Caused by:\n"
-              + "      [A3] Failed to match schema \"string\"\n"
-              + "      [A3] Cell type 'NUMERIC' is not STRING",
+              + "      [A4] Failed to match record for field field_num\n"
+              + "      [B4] Cell type 'STRING' is not NUMERIC",
           e.getMessage());
     }
   }
@@ -188,7 +188,7 @@ class AvroToExcelConverterTest {
               + "  Caused by:\n"
               + "    [A3] Cannot match schema RECORD test [a, b]\n"
               + "    Caused by:\n"
-              + "      [A3] Failed to match schema [RECORD testC [c], ARRAY \"int\"]\n"
+              + "      [A3] Failed to match record for field b\n"
               + "      [B3] Cannot be both ARRAY and RECORD",
           e.getMessage());
     }
@@ -282,7 +282,7 @@ class AvroToExcelConverterTest {
               + "  Caused by:\n"
               + "    [A3] Cannot match schema RECORD test [a, b]\n"
               + "    Caused by:\n"
-              + "      [A3] Failed to match schema [{\"type\":\"enum\",\"name\":\"enumA\",\"symbols\":[\"c\",\"d\"]}, \"null\"]\n"
+              + "      [A3] Failed to match record for field b\n"
               + "      [B3] 'e' is not one of [c, d]",
           e.getMessage());
     }

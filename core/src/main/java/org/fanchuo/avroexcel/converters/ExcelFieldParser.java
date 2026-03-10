@@ -20,33 +20,39 @@ public class ExcelFieldParser implements IExcelFieldParser {
     public abstract ParserResult analyze(Schema schema, Cell cell, CellAddress address);
   }
 
-  static class EnumExcelFieldParser extends TypeParser {
+  abstract static class StringEncodedParser extends TypeParser {
     @Override
-    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
-      if (cell.getCellType() == CellType.STRING) {
-        String str = cell.getStringCellValue();
-        if (schema.getEnumSymbols().contains(str)) {
-          return new ParserResult(null, new GenericData.EnumSymbol(schema, str));
-        }
-        return new ParserResult(
-            new FormatErrorMessage("'%s' is not one of %s", address, str, schema.getEnumSymbols()),
-            null);
+    public final ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
+      if (cell.getCellType() == CellType.STRING || cell.getCellType() == CellType.BLANK) {
+        return analyzeStr(schema, cell.getStringCellValue(), address);
+      }
+      if (cell.getCellType() == CellType.NUMERIC) {
+        return analyzeStr(schema, String.valueOf(cell.getNumericCellValue()), address);
       }
       return new ParserResult(
-          new FormatErrorMessage("Cell type '%s' is not STRING", address, cell.getCellType()),
+          new FormatErrorMessage("Cell type '%s' is not a string", address, cell.getCellType()),
+          null);
+    }
+
+    public abstract ParserResult analyzeStr(Schema schema, String value, CellAddress address);
+  }
+
+  static class EnumExcelFieldParser extends StringEncodedParser {
+    @Override
+    public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
+      if (schema.getEnumSymbols().contains(value)) {
+        return new ParserResult(null, new GenericData.EnumSymbol(schema, value));
+      }
+      return new ParserResult(
+          new FormatErrorMessage("'%s' is not one of %s", address, value, schema.getEnumSymbols()),
           null);
     }
   }
 
-  static class StringExcelFieldParser extends TypeParser {
+  static class StringExcelFieldParser extends StringEncodedParser {
     @Override
-    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
-      if (cell.getCellType() == CellType.STRING) {
-        return new ParserResult(null, cell.getStringCellValue());
-      }
-      return new ParserResult(
-          new FormatErrorMessage("Cell type '%s' is not STRING", address, cell.getCellType()),
-          null);
+    public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
+      return new ParserResult(null, value);
     }
   }
 
@@ -162,44 +168,28 @@ public class ExcelFieldParser implements IExcelFieldParser {
     }
   }
 
-  static class BytesExcelFieldParser extends TypeParser {
+  static class BytesExcelFieldParser extends StringEncodedParser {
     @Override
-    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
-      if (cell.getCellType() == CellType.STRING) {
-        try {
-          return new ParserResult(null, BytesUtils.stringToBytes(cell.getStringCellValue()));
-        } catch (IllegalArgumentException e) {
-          return new ParserResult(
-              new FormatErrorMessage(
-                  "Cell value '%s' is not base 64 encoded", address, cell.getStringCellValue()),
-              null);
-        }
+    public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
+      try {
+        return new ParserResult(null, BytesUtils.stringToBytes(value));
+      } catch (IllegalArgumentException e) {
+        return new ParserResult(
+            new FormatErrorMessage("Cell value '%s' is not base 64 encoded", address, value), null);
       }
-      return new ParserResult(
-          new FormatErrorMessage("Cell type '%s' is not a string", address, cell.getCellType()),
-          null);
     }
   }
 
-  static class FixedExcelFieldParser extends TypeParser {
+  static class FixedExcelFieldParser extends StringEncodedParser {
     @Override
-    public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
-      if (cell.getCellType() == CellType.STRING) {
-        try {
-          return new ParserResult(
-              null,
-              new GenericData.Fixed(
-                  schema, BytesUtils.stringToByteArray(cell.getStringCellValue())));
-        } catch (IllegalArgumentException e) {
-          return new ParserResult(
-              new FormatErrorMessage(
-                  "Cell value '%s' is not base 64 encoded", address, cell.getStringCellValue()),
-              null);
-        }
+    public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
+      try {
+        return new ParserResult(
+            null, new GenericData.Fixed(schema, BytesUtils.stringToByteArray(value)));
+      } catch (IllegalArgumentException e) {
+        return new ParserResult(
+            new FormatErrorMessage("Cell value '%s' is not base 64 encoded", address, value), null);
       }
-      return new ParserResult(
-          new FormatErrorMessage("Cell type '%s' is not a string", address, cell.getCellType()),
-          null);
     }
   }
 

@@ -36,8 +36,7 @@ public class ExcelRecordParser {
         } else {
           CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
           compositeErrorMessage.add(
-              new FormatErrorMessage(
-                  "Failed to match schema %s", address, new SchemaReport(fieldSchema)));
+              new FormatErrorMessage("Failed to match record for field %s", address, fieldName));
           compositeErrorMessage.add(subRecord.failures.get(fieldSchema));
           return new ParserResult(compositeErrorMessage, null);
         }
