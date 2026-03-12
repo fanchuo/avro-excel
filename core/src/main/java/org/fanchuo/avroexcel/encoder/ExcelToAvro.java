@@ -7,6 +7,8 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellAddress;
+import org.fanchuo.avroexcel.converters.DecoderSchemaException;
+import org.fanchuo.avroexcel.converters.GenericRecordIterator;
 import org.fanchuo.avroexcel.converters.IExcelFieldParser;
 import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.ErrorMessage;
@@ -18,7 +20,7 @@ import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ExcelToAvro {
+public class ExcelToAvro implements GenericRecordIterator {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExcelToAvro.class);
 
   private final ExcelSheetReader sheet;
@@ -43,7 +45,7 @@ public class ExcelToAvro {
     this.row = row;
   }
 
-  public GenericRecord readRecord() throws ExcelSchemaException {
+  public GenericRecord readRecord() throws DecoderSchemaException {
     Schema s = Schema.createUnion(this.schema, Schema.create(Schema.Type.NULL));
     ExcelRecord excelRecords =
         visitObject(this.col, this.row, Collections.singletonList(s), this.headerInfo);
@@ -58,7 +60,7 @@ public class ExcelToAvro {
       }
       StringBuilder sb = new StringBuilder();
       compositeErrorMessage.dump("", sb);
-      throw new ExcelSchemaException(sb.toString());
+      throw new DecoderSchemaException(sb.toString());
     }
     GenericRecord toReturn = (GenericRecord) excelRecords.candidates.values().iterator().next();
     this.row += excelRecords.recordGeometry.rowSpan;
@@ -326,5 +328,15 @@ public class ExcelToAvro {
     }
     LOGGER.debug("return map - {}", candidates);
     return new ExcelRecord(candidates, failures, new RecordGeometry(rowSpan, null, subList), false);
+  }
+
+  @Override
+  public void close() {
+    // Nothing to do
+  }
+
+  @Override
+  public Schema getSchema() {
+    return schema;
   }
 }

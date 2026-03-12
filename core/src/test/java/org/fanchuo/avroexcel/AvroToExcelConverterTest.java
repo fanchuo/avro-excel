@@ -20,11 +20,11 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.commons.io.IOUtils;
+import org.fanchuo.avroexcel.converters.DecoderSchemaException;
 import org.fanchuo.avroexcel.converters.DefaultConverters;
 import org.fanchuo.avroexcel.converters.IConverters;
 import org.fanchuo.avroexcel.converters.InferSchemaException;
 import org.fanchuo.avroexcel.decoder.AvroToExcelConverter;
-import org.fanchuo.avroexcel.encoder.ExcelSchemaException;
 import org.fanchuo.avroexcel.encoder.ExcelToAvroConverter;
 import org.fanchuo.avroexcel.infer.ExcelInferSchema;
 import org.junit.jupiter.api.Assertions;
@@ -117,7 +117,7 @@ class AvroToExcelConverterTest {
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       ExcelToAvroConverter.convert(is, baos, "Test1", 0, 0, schema, converters);
       fail("Should not have failed");
-    } catch (ExcelSchemaException e) {
+    } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
               + "  [A4] Cannot match schema [RECORD test [field_txt, field_num, field_bool, field_date, field_time], \"null\"]\n"
@@ -146,7 +146,7 @@ class AvroToExcelConverterTest {
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       ExcelToAvroConverter.convert(is, baos, "Test1", 0, 0, schema, converters);
       fail("Should not have failed");
-    } catch (ExcelSchemaException e) {
+    } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
               + "  [A2] Cannot match schema [RECORD test [field_txt, field_num, field_bool], \"null\"]\n"
@@ -181,7 +181,7 @@ class AvroToExcelConverterTest {
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       ExcelToAvroConverter.convert(is, baos, "Test2", 0, 0, schema, converters);
       fail("Should not have failed");
-    } catch (ExcelSchemaException e) {
+    } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
               + "  [A3] Cannot match schema [RECORD test [a, b], \"null\"]\n"
@@ -204,7 +204,7 @@ class AvroToExcelConverterTest {
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema, converters);
       fail("Should not have failed");
-    } catch (ExcelSchemaException e) {
+    } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
               + "  [A2] Cannot match schema [RECORD test [a], \"null\"]\n"
@@ -216,7 +216,8 @@ class AvroToExcelConverterTest {
   }
 
   @Test
-  public void validateByteBuffer() throws IOException, ExcelSchemaException, InferSchemaException {
+  public void validateByteBuffer()
+      throws IOException, DecoderSchemaException, InferSchemaException {
     Schema bytes = Schema.create(Schema.Type.BYTES);
     Schema fixed = Schema.createFixed("myfixed", null, null, 4);
     Schema schema =
@@ -275,7 +276,7 @@ class AvroToExcelConverterTest {
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema, converters);
       fail("Should not have failed");
-    } catch (ExcelSchemaException e) {
+    } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
               + "  [A3] Cannot match schema [RECORD test [a, b], \"null\"]\n"
@@ -333,7 +334,7 @@ class AvroToExcelConverterTest {
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema, converters);
       fail("Should not have failed");
-    } catch (ExcelSchemaException e) {
+    } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
               + "  [A2] Cannot match schema [RECORD test [a, b, c], \"null\"]\n"

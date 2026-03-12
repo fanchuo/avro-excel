@@ -2,11 +2,10 @@ package org.fanchuo.avroexcel.encoder;
 
 import java.io.*;
 import org.apache.avro.Schema;
-import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.DatumWriter;
+import org.fanchuo.avroexcel.converters.DecoderSchemaException;
+import org.fanchuo.avroexcel.converters.GenericRecordConsumer;
+import org.fanchuo.avroexcel.converters.GenericRecordIterator;
 import org.fanchuo.avroexcel.converters.IConverters;
 import org.fanchuo.avroexcel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
@@ -21,7 +20,7 @@ public class ExcelToAvroConverter {
       int row,
       Schema schema,
       IConverters converters)
-      throws IOException, ExcelSchemaException {
+      throws IOException, DecoderSchemaException {
     try (InputStream is = new FileInputStream(excelFile);
         OutputStream os = new FileOutputStream(avroFile)) {
       convert(is, os, sheetName, col, row, schema, converters);
@@ -36,25 +35,39 @@ public class ExcelToAvroConverter {
       int row,
       Schema schema,
       IConverters converters)
-      throws IOException, ExcelSchemaException {
-    ExcelSheetReader excelSheetReader = ExcelSheetReader.loadSheet(inputStream, sheetName);
-    HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, col, row);
-    ExcelToAvro excelToAvro =
-        new ExcelToAvro(
-            converters.getExcelFieldParser(),
-            excelSheetReader,
-            schema,
-            headerInfo,
-            col,
-            row + headerInfo.rowSpan);
-    GenericRecord record;
-    GenericData genericData = converters.getGenericData();
-    DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema, genericData);
-    try (DataFileWriter<GenericRecord> dataFileWriter = new DataFileWriter<>(datumWriter)) {
-      dataFileWriter.create(schema, avroOutputStream);
-      while ((record = excelToAvro.readRecord()) != null) {
-        dataFileWriter.append(record);
+      throws IOException, DecoderSchemaException {
+    try (GenericRecordConsumer recordConsumer = encodeAvro(avroOutputStream, converters);
+        GenericRecordIterator recordIterator =
+            decodeExcel(inputStream, sheetName, col, row, schema, converters); ) {
+      GenericRecord record;
+      recordConsumer.declareSchema(recordIterator.getSchema());
+      while ((record = recordIterator.readRecord()) != null) {
+        recordConsumer.writeRecord(record);
       }
     }
+  }
+
+  public static GenericRecordConsumer encodeAvro(
+      OutputStream avroOutputStream, IConverters converters) {
+    return new AvroWriter(converters.getGenericData(), avroOutputStream);
+  }
+
+  public static ExcelToAvro decodeExcel(
+      InputStream inputStream,
+      String sheetName,
+      int col,
+      int row,
+      Schema schema,
+      IConverters converters)
+      throws IOException {
+    ExcelSheetReader excelSheetReader = ExcelSheetReader.loadSheet(inputStream, sheetName);
+    HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, col, row);
+    return new ExcelToAvro(
+        converters.getExcelFieldParser(),
+        excelSheetReader,
+        schema,
+        headerInfo,
+        col,
+        row + headerInfo.rowSpan);
   }
 }

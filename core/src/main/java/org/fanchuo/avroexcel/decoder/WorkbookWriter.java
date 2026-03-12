@@ -2,35 +2,58 @@ package org.fanchuo.avroexcel.decoder;
 
 import java.io.*;
 import java.util.*;
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fanchuo.avroexcel.converters.GenericRecordConsumer;
 import org.fanchuo.avroexcel.converters.IExcelFieldFormater;
 import org.fanchuo.avroexcel.converters.Zone;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
+import org.fanchuo.avroexcel.headerinfo.HeaderInfoAvroSchemaReader;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
+import org.fanchuo.avroexcel.recordgeometry.RecordGeometryAvroReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WorkbookWriter implements Closeable {
+public class WorkbookWriter implements GenericRecordConsumer {
   private static final Logger LOGGER = LoggerFactory.getLogger(WorkbookWriter.class);
 
   private final OutputStream outputStream;
   private final Workbook workbook = new XSSFWorkbook();
   private final Sheet sheet;
   private final IExcelFieldFormater excelFieldFormater;
+  private final int col;
+  private HeaderInfo root;
+  private Zone zone = Zone.ODD;
+  private int idx;
 
-  public WorkbookWriter(File excelFile, String sheetName, IExcelFieldFormater excelFieldFormater)
+  public WorkbookWriter(
+      File excelFile, String sheetName, IExcelFieldFormater excelFieldFormater, int col, int row)
       throws IOException {
-    this(new FileOutputStream(excelFile), sheetName, excelFieldFormater);
+    this(new FileOutputStream(excelFile), sheetName, excelFieldFormater, col, row);
   }
 
   public WorkbookWriter(
-      OutputStream outputStream, String sheetName, IExcelFieldFormater excelFieldFormater) {
+      OutputStream outputStream,
+      String sheetName,
+      IExcelFieldFormater excelFieldFormater,
+      int col,
+      int row) {
     this.sheet = workbook.createSheet(sheetName);
     this.outputStream = outputStream;
     this.excelFieldFormater = excelFieldFormater;
+    this.col = col;
+    this.idx = row;
+  }
+
+  @Override
+  public void declareSchema(Schema schema) {
+    this.root = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
+    this.writeHeaders(this.col, this.idx, root, this.idx + root.rowSpan);
+    this.color(this.col, this.idx, root.colSpan, root.rowSpan, Zone.HEADER);
+    this.idx = this.idx + root.rowSpan;
   }
 
   private Row getRow(int row) {
@@ -230,10 +253,28 @@ public class WorkbookWriter implements Closeable {
 
   @Override
   public void close() throws IOException {
+    finalize(this.col, this.root.colSpan);
     try {
       workbook.write(this.outputStream);
     } finally {
       this.outputStream.close();
     }
+  }
+
+  @Override
+  public void writeRecord(GenericRecord record) {
+    RecordGeometry recordGeometry = RecordGeometryAvroReader.visitRecord(record);
+    this.color(this.col, this.idx, this.root.colSpan, recordGeometry.rowSpan, this.zone);
+    this.writeRecord(
+        record,
+        this.root,
+        recordGeometry,
+        this.col,
+        this.idx,
+        this.idx + recordGeometry.rowSpan,
+        this.zone);
+    this.idx += recordGeometry.rowSpan;
+    if (this.zone == Zone.EVEN) this.zone = Zone.ODD;
+    else this.zone = Zone.EVEN;
   }
 }

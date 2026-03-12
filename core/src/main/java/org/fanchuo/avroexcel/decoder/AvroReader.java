@@ -4,15 +4,16 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.function.Consumer;
+import java.util.Iterator;
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
+import org.fanchuo.avroexcel.converters.GenericRecordIterator;
 
-public class AvroReader implements Closeable {
+public class AvroReader implements GenericRecordIterator {
   private final Iterable<GenericRecord> iterable;
   private final Closeable closeable;
   private final Schema schema;
@@ -35,10 +36,11 @@ public class AvroReader implements Closeable {
     this.schema = schema;
   }
 
-  public void process(Consumer<GenericRecord> consumer) {
-    for (GenericRecord record : this.iterable) {
-      consumer.accept(record);
-    }
+  @Override
+  public GenericRecord readRecord() {
+    Iterator<GenericRecord> it = this.iterable.iterator();
+    if (it.hasNext()) return it.next();
+    return null;
   }
 
   @Override
@@ -46,6 +48,7 @@ public class AvroReader implements Closeable {
     if (this.closeable != null) this.closeable.close();
   }
 
+  @Override
   public Schema getSchema() {
     return schema;
   }
