@@ -9,6 +9,8 @@ import org.fanchuo.avroexcel.core.encoder.GenericRecordConsumer;
 import org.fanchuo.avroexcel.core.encoder.IEncoderBuilder;
 
 public class Convertion {
+  private Convertion() {}
+
   public static void convert(
       InputStream inputStream,
       OutputStream outputStream,
