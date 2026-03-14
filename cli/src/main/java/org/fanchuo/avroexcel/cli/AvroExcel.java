@@ -4,7 +4,9 @@ import java.io.File;
 import java.util.concurrent.Callable;
 import org.apache.avro.Schema;
 import org.fanchuo.avroexcel.converters.DefaultConverters;
+import org.fanchuo.avroexcel.converters.DefaultGenericDataConf;
 import org.fanchuo.avroexcel.converters.IConverters;
+import org.fanchuo.avroexcel.converters.IGenericDataConf;
 import org.fanchuo.avroexcel.decoder.AvroToExcelConverter;
 import org.fanchuo.avroexcel.encoder.ExcelToAvroConverter;
 import org.fanchuo.avroexcel.infer.ExcelInferSchema;
@@ -65,6 +67,7 @@ public class AvroExcel implements Callable<Void> {
   @Override
   public Void call() throws Exception {
     IConverters converters = new DefaultConverters();
+    IGenericDataConf genericDataConf = new DefaultGenericDataConf();
     switch (encoding) {
       case EXCEL_TO_AVRO:
         Schema schema;
@@ -75,10 +78,12 @@ public class AvroExcel implements Callable<Void> {
               ExcelInferSchema.inferSchema(
                   inputFile, tab, col, row, converters.getExcelFieldParser());
         }
-        ExcelToAvroConverter.convert(inputFile, outputFile, tab, col, row, schema, converters);
+        ExcelToAvroConverter.convert(
+            inputFile, outputFile, tab, col, row, schema, converters, genericDataConf);
         break;
       case AVRO_TO_EXCEL:
-        AvroToExcelConverter.convert(inputFile, outputFile, tab, col, row, converters);
+        AvroToExcelConverter.convert(
+            inputFile, outputFile, tab, col, row, converters, genericDataConf);
         break;
     }
     return null;

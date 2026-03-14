@@ -14,9 +14,15 @@ public class AvroToExcelConverter {
   }
 
   public static void convert(
-      File avroFile, File excelFile, String sheetName, int col, int row, IConverters converters)
+      File avroFile,
+      File excelFile,
+      String sheetName,
+      int col,
+      int row,
+      IConverters converters,
+      IGenericDataConf genericDataConf)
       throws IOException, DecoderSchemaException {
-    try (AvroReader avroReader = new AvroReader(avroFile, converters.getGenericData());
+    try (AvroReader avroReader = new AvroReader(avroFile, genericDataConf.getGenericData());
         ExcelWriter workbookWriter =
             new ExcelWriter(
                 excelFile,
@@ -34,9 +40,10 @@ public class AvroToExcelConverter {
       String sheetName,
       int col,
       int row,
-      IConverters converters)
+      IConverters converters,
+      IGenericDataConf genericDataConf)
       throws IOException, DecoderSchemaException {
-    try (AvroReader avroReader = new AvroReader(avroStream, converters.getGenericData());
+    try (AvroReader avroReader = new AvroReader(avroStream, genericDataConf.getGenericData());
         ExcelWriter workbookWriter =
             new ExcelWriter(
                 excelStream,
@@ -70,13 +77,13 @@ public class AvroToExcelConverter {
     return new ExcelWriter(excelStream, sheetName, converters.getExcelFieldFormater(), col, row);
   }
 
-  private static GenericRecordIterator decodeAvro(File avrofile, IConverters converters)
+  private static GenericRecordIterator decodeAvro(File avrofile, IGenericDataConf genericDataConf)
       throws IOException {
-    return new AvroReader(avrofile, converters.getGenericData());
+    return new AvroReader(avrofile, genericDataConf.getGenericData());
   }
 
-  private static GenericRecordIterator decodeAvro(InputStream avroStream, IConverters converters)
-      throws IOException {
-    return new AvroReader(avroStream, converters.getGenericData());
+  private static GenericRecordIterator decodeAvro(
+      InputStream avroStream, IGenericDataConf genericDataConf) throws IOException {
+    return new AvroReader(avroStream, genericDataConf.getGenericData());
   }
 }
