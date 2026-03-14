@@ -1,0 +1,37 @@
+package org.fanchuo.avroexcel.core.headerinfo;
+
+import java.util.List;
+
+public class HeaderInfo {
+  public final String text;
+  public final int colSpan;
+  public final int rowSpan;
+  public final List<HeaderInfo> subHeaders;
+  public final boolean isNull;
+
+  public HeaderInfo(
+      String text, List<HeaderInfo> subHeaders, int colSpan, int rowSpan, boolean isNull) {
+    this.text = text;
+    this.subHeaders = subHeaders;
+    this.colSpan = colSpan;
+    this.rowSpan = rowSpan;
+    this.isNull = isNull;
+  }
+
+  @Override
+  public String toString() {
+    return "HeaderInfo{"
+        + "text='"
+        + text
+        + '\''
+        + ", colSpan="
+        + colSpan
+        + ", rowSpan="
+        + rowSpan
+        + ", subHeaders="
+        + subHeaders
+        + ", isNull="
+        + isNull
+        + '}';
+  }
+}
