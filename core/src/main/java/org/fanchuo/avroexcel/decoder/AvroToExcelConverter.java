@@ -17,8 +17,8 @@ public class AvroToExcelConverter {
       File avroFile, File excelFile, String sheetName, int col, int row, IConverters converters)
       throws IOException, DecoderSchemaException {
     try (AvroReader avroReader = new AvroReader(avroFile, converters.getGenericData());
-        WorkbookWriter workbookWriter =
-            new WorkbookWriter(
+        ExcelWriter workbookWriter =
+            new ExcelWriter(
                 excelFile,
                 makeSheetname(sheetName),
                 converters.getExcelFieldFormater(),
@@ -37,8 +37,8 @@ public class AvroToExcelConverter {
       IConverters converters)
       throws IOException, DecoderSchemaException {
     try (AvroReader avroReader = new AvroReader(avroStream, converters.getGenericData());
-        WorkbookWriter workbookWriter =
-            new WorkbookWriter(
+        ExcelWriter workbookWriter =
+            new ExcelWriter(
                 excelStream,
                 makeSheetname(sheetName),
                 converters.getExcelFieldFormater(),
@@ -61,13 +61,13 @@ public class AvroToExcelConverter {
   private static GenericRecordConsumer encodeExcel(
       File excelFile, String sheetName, int col, int row, IConverters converters)
       throws IOException {
-    return new WorkbookWriter(excelFile, sheetName, converters.getExcelFieldFormater(), col, row);
+    return new ExcelWriter(excelFile, sheetName, converters.getExcelFieldFormater(), col, row);
   }
 
   private static GenericRecordConsumer encodeExcel(
       OutputStream excelStream, String sheetName, int col, int row, IConverters converters)
       throws IOException {
-    return new WorkbookWriter(excelStream, sheetName, converters.getExcelFieldFormater(), col, row);
+    return new ExcelWriter(excelStream, sheetName, converters.getExcelFieldFormater(), col, row);
   }
 
   private static GenericRecordIterator decodeAvro(File avrofile, IConverters converters)

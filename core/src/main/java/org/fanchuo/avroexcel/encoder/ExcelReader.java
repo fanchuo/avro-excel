@@ -20,8 +20,8 @@ import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ExcelToAvro implements GenericRecordIterator {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExcelToAvro.class);
+public class ExcelReader implements GenericRecordIterator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExcelReader.class);
 
   private final ExcelSheetReader sheet;
   private final Schema schema;
@@ -30,7 +30,7 @@ public class ExcelToAvro implements GenericRecordIterator {
   private final IExcelFieldParser excelFieldParser;
   private int row;
 
-  public ExcelToAvro(
+  public ExcelReader(
       IExcelFieldParser excelFieldParser,
       ExcelSheetReader sheet,
       Schema schema,

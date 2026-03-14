@@ -17,8 +17,8 @@ import org.fanchuo.avroexcel.recordgeometry.RecordGeometryAvroReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WorkbookWriter implements GenericRecordConsumer {
-  private static final Logger LOGGER = LoggerFactory.getLogger(WorkbookWriter.class);
+public class ExcelWriter implements GenericRecordConsumer {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExcelWriter.class);
 
   private final OutputStream outputStream;
   private final Workbook workbook = new XSSFWorkbook();
@@ -29,13 +29,13 @@ public class WorkbookWriter implements GenericRecordConsumer {
   private Zone zone = Zone.ODD;
   private int idx;
 
-  public WorkbookWriter(
+  public ExcelWriter(
       File excelFile, String sheetName, IExcelFieldFormater excelFieldFormater, int col, int row)
       throws IOException {
     this(new FileOutputStream(excelFile), sheetName, excelFieldFormater, col, row);
   }
 
-  public WorkbookWriter(
+  public ExcelWriter(
       OutputStream outputStream,
       String sheetName,
       IExcelFieldFormater excelFieldFormater,

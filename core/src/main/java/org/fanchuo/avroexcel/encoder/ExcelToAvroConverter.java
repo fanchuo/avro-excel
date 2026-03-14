@@ -52,7 +52,7 @@ public class ExcelToAvroConverter {
     return new AvroWriter(converters.getGenericData(), avroOutputStream);
   }
 
-  public static ExcelToAvro decodeExcel(
+  public static ExcelReader decodeExcel(
       InputStream inputStream,
       String sheetName,
       int col,
@@ -62,7 +62,7 @@ public class ExcelToAvroConverter {
       throws IOException {
     ExcelSheetReader excelSheetReader = ExcelSheetReader.loadSheet(inputStream, sheetName);
     HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, col, row);
-    return new ExcelToAvro(
+    return new ExcelReader(
         converters.getExcelFieldParser(),
         excelSheetReader,
         schema,
