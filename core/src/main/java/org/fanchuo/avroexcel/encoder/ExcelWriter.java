@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.decoder;
+package org.fanchuo.avroexcel.encoder;
 
 import java.io.*;
 import java.util.*;
@@ -7,9 +7,8 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.fanchuo.avroexcel.converters.GenericRecordConsumer;
 import org.fanchuo.avroexcel.converters.IExcelFieldFormater;
-import org.fanchuo.avroexcel.converters.Zone;
+import org.fanchuo.avroexcel.excelutil.Zone;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.headerinfo.HeaderInfoAvroSchemaReader;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;

@@ -8,7 +8,6 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
-import org.fanchuo.avroexcel.converters.GenericRecordConsumer;
 
 public class AvroWriter implements GenericRecordConsumer {
 

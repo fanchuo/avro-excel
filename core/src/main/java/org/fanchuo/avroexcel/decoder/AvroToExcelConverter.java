@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import org.apache.avro.generic.GenericRecord;
+import org.fanchuo.avroexcel.avroutil.IGenericDataConf;
 import org.fanchuo.avroexcel.converters.*;
+import org.fanchuo.avroexcel.encoder.ExcelWriter;
+import org.fanchuo.avroexcel.encoder.GenericRecordConsumer;
 
 public class AvroToExcelConverter {
   private static String makeSheetname(String sheetName) {

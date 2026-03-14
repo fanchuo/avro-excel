@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.encoder;
+package org.fanchuo.avroexcel.decoder;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,6 +7,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.util.CellAddress;
+import org.fanchuo.avroexcel.encoder.SchemaReport;
 import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 

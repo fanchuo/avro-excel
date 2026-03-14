@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.converters;
+package org.fanchuo.avroexcel.decoder;
 
 import java.io.Closeable;
 import org.apache.avro.Schema;

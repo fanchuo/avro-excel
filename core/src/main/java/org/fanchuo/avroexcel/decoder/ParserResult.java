@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.encoder;
+package org.fanchuo.avroexcel.decoder;
 
 import org.fanchuo.avroexcel.excelutil.ErrorMessage;
 

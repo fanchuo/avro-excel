@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.encoder;
+package org.fanchuo.avroexcel.decoder;
 
 import java.util.Map;
 import org.apache.avro.Schema;

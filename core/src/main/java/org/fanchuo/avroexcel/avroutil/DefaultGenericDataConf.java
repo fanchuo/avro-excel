@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.converters;
+package org.fanchuo.avroexcel.avroutil;
 
 import org.apache.avro.data.TimeConversions;
 import org.apache.avro.generic.GenericData;

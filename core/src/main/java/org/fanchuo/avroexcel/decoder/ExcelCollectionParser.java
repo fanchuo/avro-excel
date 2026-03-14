@@ -1,8 +1,9 @@
-package org.fanchuo.avroexcel.encoder;
+package org.fanchuo.avroexcel.decoder;
 
 import java.util.*;
 import org.apache.avro.Schema;
 import org.apache.poi.ss.util.CellAddress;
+import org.fanchuo.avroexcel.encoder.SchemaReport;
 import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 

@@ -11,7 +11,6 @@ import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
-import org.fanchuo.avroexcel.converters.GenericRecordIterator;
 
 public class AvroReader implements GenericRecordIterator {
   private final Iterable<GenericRecord> iterable;

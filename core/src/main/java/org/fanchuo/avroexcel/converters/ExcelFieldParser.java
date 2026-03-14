@@ -9,10 +9,13 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.util.CellAddress;
-import org.fanchuo.avroexcel.encoder.ParserTools;
+import org.fanchuo.avroexcel.avroutil.ParserResult;
+import org.fanchuo.avroexcel.avroutil.Type;
+import org.fanchuo.avroexcel.decoder.ParserTools;
 import org.fanchuo.avroexcel.excelutil.BytesUtils;
 import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 import org.fanchuo.avroexcel.excelutil.TimestampParser;
+import org.fanchuo.avroexcel.infer.InferSchemaException;
 
 public class ExcelFieldParser implements IExcelFieldParser {
 

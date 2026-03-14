@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.encoder;
+package org.fanchuo.avroexcel.decoder;
 
 public class CollectionTypes {
   boolean nullable;
