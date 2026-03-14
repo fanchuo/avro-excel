@@ -3,12 +3,17 @@ package org.fanchuo.avroexcel.cli;
 import java.io.File;
 import java.util.concurrent.Callable;
 import org.apache.avro.Schema;
+import org.fanchuo.avroexcel.avroutil.Convertion;
 import org.fanchuo.avroexcel.avroutil.DefaultGenericDataConf;
 import org.fanchuo.avroexcel.avroutil.IGenericDataConf;
 import org.fanchuo.avroexcel.converters.DefaultConverters;
 import org.fanchuo.avroexcel.converters.IConverters;
-import org.fanchuo.avroexcel.decoder.AvroToExcelConverter;
-import org.fanchuo.avroexcel.encoder.ExcelToAvroConverter;
+import org.fanchuo.avroexcel.decoder.AvroDecoderBuilder;
+import org.fanchuo.avroexcel.decoder.ExcelDecoderBuilder;
+import org.fanchuo.avroexcel.decoder.IDecoderBuilder;
+import org.fanchuo.avroexcel.encoder.AvroEncoderBuilder;
+import org.fanchuo.avroexcel.encoder.ExcelEncoderBuilder;
+import org.fanchuo.avroexcel.encoder.IEncoderBuilder;
 import org.fanchuo.avroexcel.infer.ExcelInferSchema;
 import picocli.CommandLine;
 
@@ -16,8 +21,8 @@ import picocli.CommandLine;
 public class AvroExcel implements Callable<Void> {
 
   private enum Encoding {
-    EXCEL_TO_AVRO,
-    AVRO_TO_EXCEL
+    EXCEL,
+    AVRO
   }
 
   @CommandLine.Option(
@@ -56,8 +61,13 @@ public class AvroExcel implements Callable<Void> {
 
   @CommandLine.Option(
       names = {"-e"},
-      description = "Encoding type")
-  private Encoding encoding;
+      description = "Input encoding type")
+  private Encoding inputEncoding;
+
+  @CommandLine.Option(
+      names = {"-f"},
+      description = "Output encoding type")
+  private Encoding outputEncoding;
 
   public static void main(String[] args) {
     int exitCode = new CommandLine(new AvroExcel()).execute(args);
@@ -68,8 +78,10 @@ public class AvroExcel implements Callable<Void> {
   public Void call() throws Exception {
     IConverters converters = new DefaultConverters();
     IGenericDataConf genericDataConf = new DefaultGenericDataConf();
-    switch (encoding) {
-      case EXCEL_TO_AVRO:
+    IEncoderBuilder encoderBuilder;
+    IDecoderBuilder decoderBuilder;
+    switch (this.inputEncoding) {
+      case EXCEL:
         Schema schema;
         if (schemaFile != null) {
           schema = new Schema.Parser().parse(schemaFile);
@@ -78,14 +90,26 @@ public class AvroExcel implements Callable<Void> {
               ExcelInferSchema.inferSchema(
                   inputFile, tab, col, row, converters.getExcelFieldParser());
         }
-        ExcelToAvroConverter.convert(
-            inputFile, outputFile, tab, col, row, schema, converters, genericDataConf);
+        decoderBuilder =
+            new ExcelDecoderBuilder(
+                converters.getExcelFieldParser(), this.tab, schema, this.col, this.row);
         break;
-      case AVRO_TO_EXCEL:
-        AvroToExcelConverter.convert(
-            inputFile, outputFile, tab, col, row, converters, genericDataConf);
+      default:
+      case AVRO:
+        decoderBuilder = new AvroDecoderBuilder(genericDataConf.getGenericData());
         break;
     }
+    switch (this.outputEncoding) {
+      case EXCEL:
+        encoderBuilder =
+            new ExcelEncoderBuilder(
+                this.tab, this.col, this.row, converters.getExcelFieldFormater());
+        break;
+      default:
+      case AVRO:
+        encoderBuilder = new AvroEncoderBuilder(genericDataConf.getGenericData());
+    }
+    Convertion.convert(this.inputFile, this.outputFile, decoderBuilder, encoderBuilder);
     return null;
   }
 }

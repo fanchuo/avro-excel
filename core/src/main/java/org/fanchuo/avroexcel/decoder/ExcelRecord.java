@@ -2,7 +2,7 @@ package org.fanchuo.avroexcel.decoder;
 
 import java.util.Map;
 import org.apache.avro.Schema;
-import org.fanchuo.avroexcel.excelutil.ErrorMessage;
+import org.fanchuo.avroexcel.avroutil.ErrorMessage;
 import org.fanchuo.avroexcel.recordgeometry.RecordGeometry;
 
 public class ExcelRecord {

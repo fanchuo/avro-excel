@@ -20,12 +20,15 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.commons.io.IOUtils;
+import org.fanchuo.avroexcel.avroutil.Convertion;
 import org.fanchuo.avroexcel.avroutil.DefaultGenericDataConf;
 import org.fanchuo.avroexcel.avroutil.IGenericDataConf;
 import org.fanchuo.avroexcel.converters.*;
-import org.fanchuo.avroexcel.decoder.AvroToExcelConverter;
+import org.fanchuo.avroexcel.decoder.AvroDecoderBuilder;
 import org.fanchuo.avroexcel.decoder.DecoderSchemaException;
-import org.fanchuo.avroexcel.encoder.ExcelToAvroConverter;
+import org.fanchuo.avroexcel.decoder.ExcelDecoderBuilder;
+import org.fanchuo.avroexcel.encoder.AvroEncoderBuilder;
+import org.fanchuo.avroexcel.encoder.ExcelEncoderBuilder;
 import org.fanchuo.avroexcel.infer.ExcelInferSchema;
 import org.fanchuo.avroexcel.infer.InferSchemaException;
 import org.junit.jupiter.api.Assertions;
@@ -60,8 +63,11 @@ class AvroToExcelConverterTest {
 
     File excelFile = TEST_OUTPUT_DIR.resolve("users.xlsx").toFile();
 
-    AvroToExcelConverter.convert(
-        avroFile, excelFile, "Avro Data", 1, 2, converters, genericDataConf);
+    Convertion.convert(
+        avroFile,
+        excelFile,
+        new AvroDecoderBuilder(genericDataConf.getGenericData()),
+        new ExcelEncoderBuilder("Avro Data", 1, 2, converters.getExcelFieldFormater()));
 
     assertTrue(excelFile.exists());
     assertTrue(excelFile.length() > 0);
@@ -77,8 +83,11 @@ class AvroToExcelConverterTest {
     }
     Assertions.assertLinesMatch(Arrays.asList(sw.toString().split("\n")), dump);
     File backAvroFile = TEST_OUTPUT_DIR.resolve("back_users.avro").toFile();
-    ExcelToAvroConverter.convert(
-        excelFile, backAvroFile, "Avro Data", 1, 2, schema, converters, genericDataConf);
+    Convertion.convert(
+        excelFile,
+        backAvroFile,
+        new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Avro Data", schema, 1, 2),
+        new AvroEncoderBuilder(genericDataConf.getGenericData()));
     List<String> dump2 = AvroDescriptor.convert(backAvroFile, genericData);
     System.out.println(String.join("\n", dump2));
     StringWriter sw2 = new StringWriter();
@@ -96,8 +105,11 @@ class AvroToExcelConverterTest {
     }
     File temp = File.createTempFile("test", ".avro");
     temp.deleteOnExit();
-    ExcelToAvroConverter.convert(
-        excelFile, temp, "Avro Data", 1, 2, inferedSchema, converters, genericDataConf);
+    Convertion.convert(
+        excelFile,
+        temp,
+        new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Avro Data", inferedSchema, 1, 2),
+        new AvroEncoderBuilder(genericDataConf.getGenericData()));
   }
 
   @Test
@@ -120,7 +132,11 @@ class AvroToExcelConverterTest {
                 new Schema.Field("field_date", date),
                 new Schema.Field("field_time", datetime)));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
-      ExcelToAvroConverter.convert(is, baos, "Test1", 0, 0, schema, converters, genericDataConf);
+      Convertion.convert(
+          is,
+          baos,
+          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test1", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf.getGenericData()));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -149,7 +165,11 @@ class AvroToExcelConverterTest {
                 new Schema.Field("field_num", Schema.create(Schema.Type.DOUBLE)),
                 new Schema.Field("field_bool", Schema.create(Schema.Type.BOOLEAN))));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
-      ExcelToAvroConverter.convert(is, baos, "Test1", 0, 0, schema, converters, genericDataConf);
+      Convertion.convert(
+          is,
+          baos,
+          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test1", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf.getGenericData()));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -184,7 +204,11 @@ class AvroToExcelConverterTest {
                 new Schema.Field("a", Schema.create(Schema.Type.STRING)),
                 new Schema.Field("b", unionB)));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
-      ExcelToAvroConverter.convert(is, baos, "Test2", 0, 0, schema, converters, genericDataConf);
+      Convertion.convert(
+          is,
+          baos,
+          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test2", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf.getGenericData()));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -207,7 +231,11 @@ class AvroToExcelConverterTest {
         Schema.createRecord(
             "test", null, null, false, Collections.singletonList(new Schema.Field("a", enumA)));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
-      ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema, converters, genericDataConf);
+      Convertion.convert(
+          is,
+          baos,
+          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test3", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf.getGenericData()));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -236,7 +264,11 @@ class AvroToExcelConverterTest {
     createSampleAvroFile2(avroFile, schema);
 
     File excelFile = TEST_OUTPUT_DIR.resolve("items.xlsx").toFile();
-    AvroToExcelConverter.convert(avroFile, excelFile, "A", 0, 0, converters, genericDataConf);
+    Convertion.convert(
+        avroFile,
+        excelFile,
+        new AvroDecoderBuilder(genericDataConf.getGenericData()),
+        new ExcelEncoderBuilder("A", 0, 0, converters.getExcelFieldFormater()));
 
     assertTrue(excelFile.exists());
     assertTrue(excelFile.length() > 0);
@@ -252,8 +284,11 @@ class AvroToExcelConverterTest {
     }
     Assertions.assertLinesMatch(Arrays.asList(sw.toString().split("\n")), dump);
     File backAvroFile = TEST_OUTPUT_DIR.resolve("back_items.avro").toFile();
-    ExcelToAvroConverter.convert(
-        excelFile, backAvroFile, "A", 0, 0, schema, converters, genericDataConf);
+    Convertion.convert(
+        excelFile,
+        backAvroFile,
+        new ExcelDecoderBuilder(converters.getExcelFieldParser(), "A", schema, 0, 0),
+        new AvroEncoderBuilder(genericDataConf.getGenericData()));
     List<String> dump2 = AvroDescriptor.convert(backAvroFile, genericData);
     System.out.println(String.join("\n", dump2));
     StringWriter sw2 = new StringWriter();
@@ -280,7 +315,11 @@ class AvroToExcelConverterTest {
                 new Schema.Field("a", enumA),
                 new Schema.Field("b", Schema.createUnion(enumA, Schema.create(Schema.Type.NULL)))));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
-      ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema, converters, genericDataConf);
+      Convertion.convert(
+          is,
+          baos,
+          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test3", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf.getGenericData()));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -316,7 +355,11 @@ class AvroToExcelConverterTest {
                     Schema.createUnion(
                         Schema.create(Schema.Type.STRING), Schema.create(Schema.Type.NULL)))));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
-      ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema, converters, genericDataConf);
+      Convertion.convert(
+          is,
+          baos,
+          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test3", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf.getGenericData()));
     }
   }
 
@@ -338,7 +381,11 @@ class AvroToExcelConverterTest {
                         Schema.create(Schema.Type.STRING), Schema.create(Schema.Type.NULL))),
                 new Schema.Field("c", Schema.create(Schema.Type.STRING))));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
-      ExcelToAvroConverter.convert(is, baos, "Test3", 0, 0, schema, converters, genericDataConf);
+      Convertion.convert(
+          is,
+          baos,
+          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test3", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf.getGenericData()));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(

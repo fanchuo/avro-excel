@@ -9,12 +9,12 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.util.CellAddress;
+import org.fanchuo.avroexcel.avroutil.BytesUtils;
+import org.fanchuo.avroexcel.avroutil.FormatErrorMessage;
 import org.fanchuo.avroexcel.avroutil.ParserResult;
+import org.fanchuo.avroexcel.avroutil.TimestampParser;
 import org.fanchuo.avroexcel.avroutil.Type;
 import org.fanchuo.avroexcel.decoder.ParserTools;
-import org.fanchuo.avroexcel.excelutil.BytesUtils;
-import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
-import org.fanchuo.avroexcel.excelutil.TimestampParser;
 import org.fanchuo.avroexcel.infer.InferSchemaException;
 
 public class ExcelFieldParser implements IExcelFieldParser {
@@ -96,7 +96,7 @@ public class ExcelFieldParser implements IExcelFieldParser {
       }
       if (TIMESTAMP_LOGICAL_TYPES.contains(logicalType)) {
         if (cell.getCellType() == CellType.STRING) {
-          Instant instant = TimestampParser.parseDate(cell);
+          Instant instant = TimestampParser.parseDate(cell.getStringCellValue());
           if (instant != null) {
             return new ParserResult(null, instant);
           }
@@ -235,7 +235,7 @@ public class ExcelFieldParser implements IExcelFieldParser {
       case BLANK:
         return Type.NULL;
       case STRING:
-        Instant instant = TimestampParser.parseDate(cell);
+        Instant instant = TimestampParser.parseDate(cell.getStringCellValue());
         if (instant != null) return Type.TIMESTAMP;
         return Type.STRING;
       case NUMERIC:

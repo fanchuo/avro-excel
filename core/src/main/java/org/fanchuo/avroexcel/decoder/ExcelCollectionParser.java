@@ -3,9 +3,9 @@ package org.fanchuo.avroexcel.decoder;
 import java.util.*;
 import org.apache.avro.Schema;
 import org.apache.poi.ss.util.CellAddress;
+import org.fanchuo.avroexcel.avroutil.CompositeErrorMessage;
+import org.fanchuo.avroexcel.avroutil.FormatErrorMessage;
 import org.fanchuo.avroexcel.encoder.SchemaReport;
-import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
-import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
 public abstract class ExcelCollectionParser<TSource, TTargetCollection, TIterable> {
   abstract TTargetCollection empty();

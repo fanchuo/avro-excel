@@ -1,14 +1,13 @@
-package org.fanchuo.avroexcel.excelutil;
+package org.fanchuo.avroexcel.avroutil;
 
 import java.util.Formatter;
-import org.apache.poi.ss.util.CellAddress;
 
 public class FormatErrorMessage implements ErrorMessage {
   private final String fmtString;
-  private final CellAddress address;
+  private final Object address;
   private final Object[] vargs;
 
-  public FormatErrorMessage(String fmtString, CellAddress address, Object... vargs) {
+  public FormatErrorMessage(String fmtString, Object address, Object... vargs) {
     this.fmtString = fmtString;
     this.address = address;
     this.vargs = vargs;

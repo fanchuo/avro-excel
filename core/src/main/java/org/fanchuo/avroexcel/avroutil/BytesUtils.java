@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.excelutil;
+package org.fanchuo.avroexcel.avroutil;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

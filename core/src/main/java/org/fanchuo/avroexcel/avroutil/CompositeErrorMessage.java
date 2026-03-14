@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.excelutil;
+package org.fanchuo.avroexcel.avroutil;
 
 import java.util.ArrayList;
 import java.util.List;

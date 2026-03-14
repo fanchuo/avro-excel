@@ -1,7 +1,5 @@
 package org.fanchuo.avroexcel.avroutil;
 
-import org.fanchuo.avroexcel.excelutil.ErrorMessage;
-
 public class ParserResult {
   public final ErrorMessage errorMessage;
   public final Object value;

@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel.excelutil;
+package org.fanchuo.avroexcel.avroutil;
 
 public enum Zone {
   HEADER,

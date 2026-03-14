@@ -7,9 +7,9 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.util.CellAddress;
+import org.fanchuo.avroexcel.avroutil.CompositeErrorMessage;
+import org.fanchuo.avroexcel.avroutil.FormatErrorMessage;
 import org.fanchuo.avroexcel.encoder.SchemaReport;
-import org.fanchuo.avroexcel.excelutil.CompositeErrorMessage;
-import org.fanchuo.avroexcel.excelutil.FormatErrorMessage;
 
 public class ExcelRecordParser {
   private ExcelRecordParser() {

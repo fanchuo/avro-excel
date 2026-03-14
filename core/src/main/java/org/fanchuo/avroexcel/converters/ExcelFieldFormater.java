@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 import java.util.EnumMap;
 import org.apache.avro.generic.GenericFixed;
 import org.apache.poi.ss.usermodel.*;
-import org.fanchuo.avroexcel.excelutil.BytesUtils;
-import org.fanchuo.avroexcel.excelutil.Zone;
+import org.fanchuo.avroexcel.avroutil.BytesUtils;
+import org.fanchuo.avroexcel.avroutil.Zone;
 
 public class ExcelFieldFormater implements IExcelFieldFormater {
 
