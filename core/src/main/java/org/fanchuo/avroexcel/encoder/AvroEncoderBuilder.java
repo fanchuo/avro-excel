@@ -1,17 +1,17 @@
 package org.fanchuo.avroexcel.encoder;
 
 import java.io.OutputStream;
-import org.apache.avro.generic.GenericData;
+import org.fanchuo.avroexcel.avroutil.IGenericDataConf;
 
 public class AvroEncoderBuilder implements IEncoderBuilder {
-  private final GenericData genericData;
+  private final IGenericDataConf genericDataConf;
 
-  public AvroEncoderBuilder(GenericData genericData) {
-    this.genericData = genericData;
+  public AvroEncoderBuilder(IGenericDataConf genericDataConf) {
+    this.genericDataConf = genericDataConf;
   }
 
   @Override
   public GenericRecordConsumer build(OutputStream outputStream) {
-    return new AvroWriter(this.genericData, outputStream);
+    return new AvroWriter(this.genericDataConf.getGenericData(), outputStream);
   }
 }

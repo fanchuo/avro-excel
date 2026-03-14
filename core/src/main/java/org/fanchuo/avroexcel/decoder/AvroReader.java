@@ -1,12 +1,10 @@
 package org.fanchuo.avroexcel.decoder;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import org.apache.avro.Schema;
-import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
@@ -16,10 +14,6 @@ public class AvroReader implements GenericRecordIterator {
   private final Iterable<GenericRecord> iterable;
   private final Closeable closeable;
   private final Schema schema;
-
-  public AvroReader(File avroFile, GenericData genericData) throws IOException {
-    this(new DataFileReader<>(avroFile, new GenericDatumReader<>(null, null, genericData)));
-  }
 
   public AvroReader(InputStream avroStream, GenericData genericData) throws IOException {
     this(new DataFileStream<>(avroStream, new GenericDatumReader<>(null, null, genericData)));

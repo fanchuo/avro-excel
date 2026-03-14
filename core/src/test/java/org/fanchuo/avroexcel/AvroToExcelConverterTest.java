@@ -30,7 +30,6 @@ import org.fanchuo.avroexcel.decoder.ExcelDecoderBuilder;
 import org.fanchuo.avroexcel.encoder.AvroEncoderBuilder;
 import org.fanchuo.avroexcel.encoder.ExcelEncoderBuilder;
 import org.fanchuo.avroexcel.infer.ExcelInferSchema;
-import org.fanchuo.avroexcel.infer.InferSchemaException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,8 +65,8 @@ class AvroToExcelConverterTest {
     Convertion.convert(
         avroFile,
         excelFile,
-        new AvroDecoderBuilder(genericDataConf.getGenericData()),
-        new ExcelEncoderBuilder("Avro Data", 1, 2, converters.getExcelFieldFormater()));
+        new AvroDecoderBuilder(genericDataConf),
+        new ExcelEncoderBuilder("Avro Data", 1, 2, converters));
 
     assertTrue(excelFile.exists());
     assertTrue(excelFile.length() > 0);
@@ -86,8 +85,8 @@ class AvroToExcelConverterTest {
     Convertion.convert(
         excelFile,
         backAvroFile,
-        new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Avro Data", schema, 1, 2),
-        new AvroEncoderBuilder(genericDataConf.getGenericData()));
+        new ExcelDecoderBuilder(converters, "Avro Data", schema, 1, 2),
+        new AvroEncoderBuilder(genericDataConf));
     List<String> dump2 = AvroDescriptor.convert(backAvroFile, genericData);
     System.out.println(String.join("\n", dump2));
     StringWriter sw2 = new StringWriter();
@@ -108,8 +107,8 @@ class AvroToExcelConverterTest {
     Convertion.convert(
         excelFile,
         temp,
-        new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Avro Data", inferedSchema, 1, 2),
-        new AvroEncoderBuilder(genericDataConf.getGenericData()));
+        new ExcelDecoderBuilder(converters, "Avro Data", inferedSchema, 1, 2),
+        new AvroEncoderBuilder(genericDataConf));
   }
 
   @Test
@@ -135,8 +134,8 @@ class AvroToExcelConverterTest {
       Convertion.convert(
           is,
           baos,
-          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test1", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf.getGenericData()));
+          new ExcelDecoderBuilder(converters, "Test1", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -168,8 +167,8 @@ class AvroToExcelConverterTest {
       Convertion.convert(
           is,
           baos,
-          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test1", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf.getGenericData()));
+          new ExcelDecoderBuilder(converters, "Test1", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -207,8 +206,8 @@ class AvroToExcelConverterTest {
       Convertion.convert(
           is,
           baos,
-          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test2", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf.getGenericData()));
+          new ExcelDecoderBuilder(converters, "Test2", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -234,8 +233,8 @@ class AvroToExcelConverterTest {
       Convertion.convert(
           is,
           baos,
-          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test3", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf.getGenericData()));
+          new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -249,8 +248,7 @@ class AvroToExcelConverterTest {
   }
 
   @Test
-  public void validateByteBuffer()
-      throws IOException, DecoderSchemaException, InferSchemaException {
+  public void validateByteBuffer() throws IOException, DecoderSchemaException {
     Schema bytes = Schema.create(Schema.Type.BYTES);
     Schema fixed = Schema.createFixed("myfixed", null, null, 4);
     Schema schema =
@@ -267,8 +265,8 @@ class AvroToExcelConverterTest {
     Convertion.convert(
         avroFile,
         excelFile,
-        new AvroDecoderBuilder(genericDataConf.getGenericData()),
-        new ExcelEncoderBuilder("A", 0, 0, converters.getExcelFieldFormater()));
+        new AvroDecoderBuilder(genericDataConf),
+        new ExcelEncoderBuilder("A", 0, 0, converters));
 
     assertTrue(excelFile.exists());
     assertTrue(excelFile.length() > 0);
@@ -287,8 +285,8 @@ class AvroToExcelConverterTest {
     Convertion.convert(
         excelFile,
         backAvroFile,
-        new ExcelDecoderBuilder(converters.getExcelFieldParser(), "A", schema, 0, 0),
-        new AvroEncoderBuilder(genericDataConf.getGenericData()));
+        new ExcelDecoderBuilder(converters, "A", schema, 0, 0),
+        new AvroEncoderBuilder(genericDataConf));
     List<String> dump2 = AvroDescriptor.convert(backAvroFile, genericData);
     System.out.println(String.join("\n", dump2));
     StringWriter sw2 = new StringWriter();
@@ -318,8 +316,8 @@ class AvroToExcelConverterTest {
       Convertion.convert(
           is,
           baos,
-          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test3", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf.getGenericData()));
+          new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(
@@ -358,8 +356,8 @@ class AvroToExcelConverterTest {
       Convertion.convert(
           is,
           baos,
-          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test3", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf.getGenericData()));
+          new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf));
     }
   }
 
@@ -384,8 +382,8 @@ class AvroToExcelConverterTest {
       Convertion.convert(
           is,
           baos,
-          new ExcelDecoderBuilder(converters.getExcelFieldParser(), "Test3", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf.getGenericData()));
+          new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
+          new AvroEncoderBuilder(genericDataConf));
       fail("Should not have failed");
     } catch (DecoderSchemaException e) {
       assertEquals(

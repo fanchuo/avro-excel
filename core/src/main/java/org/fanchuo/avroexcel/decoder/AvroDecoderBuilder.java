@@ -2,17 +2,17 @@ package org.fanchuo.avroexcel.decoder;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.avro.generic.GenericData;
+import org.fanchuo.avroexcel.avroutil.IGenericDataConf;
 
 public class AvroDecoderBuilder implements IDecoderBuilder {
-  private final GenericData genericData;
+  private final IGenericDataConf genericDataConf;
 
-  public AvroDecoderBuilder(GenericData genericData) {
-    this.genericData = genericData;
+  public AvroDecoderBuilder(IGenericDataConf genericDataConf) {
+    this.genericDataConf = genericDataConf;
   }
 
   @Override
   public GenericRecordIterator build(InputStream inputStream) throws IOException {
-    return new AvroReader(inputStream, this.genericData);
+    return new AvroReader(inputStream, this.genericDataConf.getGenericData());
   }
 }

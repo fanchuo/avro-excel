@@ -29,12 +29,6 @@ public class ExcelWriter implements GenericRecordConsumer {
   private int idx;
 
   public ExcelWriter(
-      File excelFile, String sheetName, IExcelFieldFormater excelFieldFormater, int col, int row)
-      throws IOException {
-    this(new FileOutputStream(excelFile), sheetName, excelFieldFormater, col, row);
-  }
-
-  public ExcelWriter(
       OutputStream outputStream,
       String sheetName,
       IExcelFieldFormater excelFieldFormater,

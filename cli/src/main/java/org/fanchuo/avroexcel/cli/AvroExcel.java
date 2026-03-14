@@ -90,24 +90,20 @@ public class AvroExcel implements Callable<Void> {
               ExcelInferSchema.inferSchema(
                   inputFile, tab, col, row, converters.getExcelFieldParser());
         }
-        decoderBuilder =
-            new ExcelDecoderBuilder(
-                converters.getExcelFieldParser(), this.tab, schema, this.col, this.row);
+        decoderBuilder = new ExcelDecoderBuilder(converters, this.tab, schema, this.col, this.row);
         break;
-      default:
       case AVRO:
-        decoderBuilder = new AvroDecoderBuilder(genericDataConf.getGenericData());
+      default:
+        decoderBuilder = new AvroDecoderBuilder(genericDataConf);
         break;
     }
     switch (this.outputEncoding) {
       case EXCEL:
-        encoderBuilder =
-            new ExcelEncoderBuilder(
-                this.tab, this.col, this.row, converters.getExcelFieldFormater());
+        encoderBuilder = new ExcelEncoderBuilder(this.tab, this.col, this.row, converters);
         break;
-      default:
       case AVRO:
-        encoderBuilder = new AvroEncoderBuilder(genericDataConf.getGenericData());
+      default:
+        encoderBuilder = new AvroEncoderBuilder(genericDataConf);
     }
     Convertion.convert(this.inputFile, this.outputFile, decoderBuilder, encoderBuilder);
     return null;
