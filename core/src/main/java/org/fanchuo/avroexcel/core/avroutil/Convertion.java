@@ -21,10 +21,7 @@ public class Convertion {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputStream);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputStream)) {
-      GenericRecord record;
-      while ((record = recordIterator.readRecord()) != null) {
-        recordConsumer.writeRecord(record);
-      }
+      convert(recordIterator, recordConsumer);
     }
   }
 
@@ -37,10 +34,7 @@ public class Convertion {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputStream);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputFile)) {
-      GenericRecord record;
-      while ((record = recordIterator.readRecord()) != null) {
-        recordConsumer.writeRecord(record);
-      }
+      convert(recordIterator, recordConsumer);
     }
   }
 
@@ -53,10 +47,7 @@ public class Convertion {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputFile);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputStream)) {
-      GenericRecord record;
-      while ((record = recordIterator.readRecord()) != null) {
-        recordConsumer.writeRecord(record);
-      }
+      convert(recordIterator, recordConsumer);
     }
   }
 
@@ -69,10 +60,16 @@ public class Convertion {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputFile);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputFile)) {
-      GenericRecord record;
-      while ((record = recordIterator.readRecord()) != null) {
-        recordConsumer.writeRecord(record);
-      }
+      convert(recordIterator, recordConsumer);
+    }
+  }
+
+  private static void convert(
+      GenericRecordIterator recordIterator, GenericRecordConsumer recordConsumer)
+      throws DecoderSchemaException, IOException {
+    GenericRecord record;
+    while ((record = recordIterator.readRecord()) != null) {
+      recordConsumer.writeRecord(record);
     }
   }
 }

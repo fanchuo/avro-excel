@@ -15,6 +15,8 @@ import org.fanchuo.avroexcel.excel.converters.IConverters;
 import org.fanchuo.avroexcel.excel.decoder.ExcelDecoderBuilder;
 import org.fanchuo.avroexcel.excel.encoder.ExcelEncoderBuilder;
 import org.fanchuo.avroexcel.excel.infer.ExcelInferSchema;
+import org.fanchuo.avroexcel.parquet.decoder.ParquetDecoderBuilder;
+import org.fanchuo.avroexcel.parquet.encoder.ParquetEncoderBuilder;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "AvroExcel", version = "1.0.0", mixinStandardHelpOptions = true)
@@ -22,7 +24,8 @@ public class AvroExcel implements Callable<Void> {
 
   private enum Encoding {
     EXCEL,
-    AVRO
+    AVRO,
+    PARQUET,
   }
 
   @CommandLine.Option(
@@ -92,6 +95,9 @@ public class AvroExcel implements Callable<Void> {
         }
         decoderBuilder = new ExcelDecoderBuilder(converters, this.tab, schema, this.col, this.row);
         break;
+      case PARQUET:
+        decoderBuilder = new ParquetDecoderBuilder(genericDataConf);
+        break;
       case AVRO:
       default:
         decoderBuilder = new AvroDecoderBuilder(genericDataConf);
@@ -100,6 +106,9 @@ public class AvroExcel implements Callable<Void> {
     switch (this.outputEncoding) {
       case EXCEL:
         encoderBuilder = new ExcelEncoderBuilder(this.tab, this.col, this.row, converters);
+        break;
+      case PARQUET:
+        encoderBuilder = new ParquetEncoderBuilder(genericDataConf);
         break;
       case AVRO:
       default:
