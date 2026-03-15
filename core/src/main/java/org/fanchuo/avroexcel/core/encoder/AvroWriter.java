@@ -11,17 +11,10 @@ import org.apache.avro.io.DatumWriter;
 
 public class AvroWriter implements GenericRecordConsumer {
 
-  private final GenericData genericData;
-  private final OutputStream avroOutputStream;
   private DataFileWriter<GenericRecord> dataFileWriter;
 
-  public AvroWriter(GenericData genericData, OutputStream avroOutputStream) {
-    this.genericData = genericData;
-    this.avroOutputStream = avroOutputStream;
-  }
-
-  @Override
-  public void declareSchema(Schema schema) throws IOException {
+  public AvroWriter(Schema schema, GenericData genericData, OutputStream avroOutputStream)
+      throws IOException {
     DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<>(schema, genericData);
     this.dataFileWriter = new DataFileWriter<>(datumWriter);
     dataFileWriter.create(schema, avroOutputStream);

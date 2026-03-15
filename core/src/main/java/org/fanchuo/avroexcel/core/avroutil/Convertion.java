@@ -1,6 +1,7 @@
 package org.fanchuo.avroexcel.core.avroutil;
 
 import java.io.*;
+import java.nio.file.Path;
 import org.apache.avro.generic.GenericRecord;
 import org.fanchuo.avroexcel.core.decoder.DecoderSchemaException;
 import org.fanchuo.avroexcel.core.decoder.GenericRecordIterator;
@@ -17,10 +18,10 @@ public class Convertion {
       IDecoderBuilder decoderBuilder,
       IEncoderBuilder encoderBuilder)
       throws IOException, DecoderSchemaException {
-    try (GenericRecordConsumer recordConsumer = encoderBuilder.build(outputStream);
-        GenericRecordIterator recordIterator = decoderBuilder.build(inputStream)) {
+    try (GenericRecordIterator recordIterator = decoderBuilder.build(inputStream);
+        GenericRecordConsumer recordConsumer =
+            encoderBuilder.build(recordIterator.getSchema(), outputStream)) {
       GenericRecord record;
-      recordConsumer.declareSchema(recordIterator.getSchema());
       while ((record = recordIterator.readRecord()) != null) {
         recordConsumer.writeRecord(record);
       }
@@ -28,14 +29,50 @@ public class Convertion {
   }
 
   public static void convert(
-      File inputFile,
-      File outputFile,
+      InputStream inputStream,
+      Path outputFile,
       IDecoderBuilder decoderBuilder,
       IEncoderBuilder encoderBuilder)
       throws IOException, DecoderSchemaException {
-    try (InputStream inputStream = new FileInputStream(inputFile);
-        OutputStream outputStream = new FileOutputStream(outputFile)) {
-      convert(inputStream, outputStream, decoderBuilder, encoderBuilder);
+    try (GenericRecordIterator recordIterator = decoderBuilder.build(inputStream);
+        GenericRecordConsumer recordConsumer =
+            encoderBuilder.build(recordIterator.getSchema(), outputFile)) {
+      GenericRecord record;
+      while ((record = recordIterator.readRecord()) != null) {
+        recordConsumer.writeRecord(record);
+      }
+    }
+  }
+
+  public static void convert(
+      Path inputFile,
+      OutputStream outputStream,
+      IDecoderBuilder decoderBuilder,
+      IEncoderBuilder encoderBuilder)
+      throws IOException, DecoderSchemaException {
+    try (GenericRecordIterator recordIterator = decoderBuilder.build(inputFile);
+        GenericRecordConsumer recordConsumer =
+            encoderBuilder.build(recordIterator.getSchema(), outputStream)) {
+      GenericRecord record;
+      while ((record = recordIterator.readRecord()) != null) {
+        recordConsumer.writeRecord(record);
+      }
+    }
+  }
+
+  public static void convert(
+      Path inputFile,
+      Path outputFile,
+      IDecoderBuilder decoderBuilder,
+      IEncoderBuilder encoderBuilder)
+      throws IOException, DecoderSchemaException {
+    try (GenericRecordIterator recordIterator = decoderBuilder.build(inputFile);
+        GenericRecordConsumer recordConsumer =
+            encoderBuilder.build(recordIterator.getSchema(), outputFile)) {
+      GenericRecord record;
+      while ((record = recordIterator.readRecord()) != null) {
+        recordConsumer.writeRecord(record);
+      }
     }
   }
 }

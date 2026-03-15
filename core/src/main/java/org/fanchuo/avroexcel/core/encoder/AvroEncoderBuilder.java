@@ -1,6 +1,9 @@
 package org.fanchuo.avroexcel.core.encoder;
 
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.apache.avro.Schema;
 import org.fanchuo.avroexcel.core.avroutil.IGenericDataConf;
 
 public class AvroEncoderBuilder implements IEncoderBuilder {
@@ -11,7 +14,12 @@ public class AvroEncoderBuilder implements IEncoderBuilder {
   }
 
   @Override
-  public GenericRecordConsumer build(OutputStream outputStream) {
-    return new AvroWriter(this.genericDataConf.getGenericData(), outputStream);
+  public GenericRecordConsumer build(Schema schema, OutputStream outputStream) throws IOException {
+    return new AvroWriter(schema, this.genericDataConf.getGenericData(), outputStream);
+  }
+
+  @Override
+  public GenericRecordConsumer build(Schema schema, Path outputFile) throws IOException {
+    return this.build(schema, new BufferedOutputStream(Files.newOutputStream(outputFile)));
   }
 }

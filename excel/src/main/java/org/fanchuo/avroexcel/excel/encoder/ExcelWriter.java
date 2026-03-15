@@ -25,11 +25,12 @@ public class ExcelWriter implements GenericRecordConsumer {
   private final Sheet sheet;
   private final IExcelFieldFormater excelFieldFormater;
   private final int col;
-  private HeaderInfo root;
+  private final HeaderInfo root;
   private Zone zone = Zone.ODD;
   private int idx;
 
   public ExcelWriter(
+      Schema schema,
       OutputStream outputStream,
       String sheetName,
       IExcelFieldFormater excelFieldFormater,
@@ -40,10 +41,6 @@ public class ExcelWriter implements GenericRecordConsumer {
     this.excelFieldFormater = excelFieldFormater;
     this.col = col;
     this.idx = row;
-  }
-
-  @Override
-  public void declareSchema(Schema schema) {
     this.root = HeaderInfoAvroSchemaReader.visitSchema(null, schema);
     this.writeHeaders(this.col, this.idx, root, this.idx + root.rowSpan);
     this.color(this.col, this.idx, root.colSpan, root.rowSpan, Zone.HEADER);

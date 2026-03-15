@@ -1,7 +1,8 @@
 package org.fanchuo.avroexcel.excel.decoder;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.apache.avro.Schema;
 import org.fanchuo.avroexcel.core.decoder.GenericRecordIterator;
 import org.fanchuo.avroexcel.core.decoder.IDecoderBuilder;
@@ -46,5 +47,10 @@ public class ExcelDecoderBuilder implements IDecoderBuilder {
         headerInfo,
         this.col,
         this.row + headerInfo.rowSpan);
+  }
+
+  @Override
+  public GenericRecordIterator build(Path inputFile) throws IOException {
+    return this.build(new BufferedInputStream(Files.newInputStream(inputFile)));
   }
 }

@@ -64,8 +64,8 @@ class AvroToExcelConverterTest {
     File excelFile = TEST_OUTPUT_DIR.resolve("users.xlsx").toFile();
 
     Convertion.convert(
-        avroFile,
-        excelFile,
+        avroFile.toPath(),
+        excelFile.toPath(),
         new AvroDecoderBuilder(genericDataConf),
         new ExcelEncoderBuilder("Avro Data", 1, 2, converters));
 
@@ -84,8 +84,8 @@ class AvroToExcelConverterTest {
     Assertions.assertLinesMatch(Arrays.asList(sw.toString().split("\n")), dump);
     File backAvroFile = TEST_OUTPUT_DIR.resolve("back_users.avro").toFile();
     Convertion.convert(
-        excelFile,
-        backAvroFile,
+        excelFile.toPath(),
+        backAvroFile.toPath(),
         new ExcelDecoderBuilder(converters, "Avro Data", schema, 1, 2),
         new AvroEncoderBuilder(genericDataConf));
     List<String> dump2 = AvroDescriptor.convert(backAvroFile, genericData);
@@ -106,8 +106,8 @@ class AvroToExcelConverterTest {
     File temp = File.createTempFile("test", ".avro");
     temp.deleteOnExit();
     Convertion.convert(
-        excelFile,
-        temp,
+        excelFile.toPath(),
+        temp.toPath(),
         new ExcelDecoderBuilder(converters, "Avro Data", inferedSchema, 1, 2),
         new AvroEncoderBuilder(genericDataConf));
   }
@@ -264,8 +264,8 @@ class AvroToExcelConverterTest {
 
     File excelFile = TEST_OUTPUT_DIR.resolve("items.xlsx").toFile();
     Convertion.convert(
-        avroFile,
-        excelFile,
+        avroFile.toPath(),
+        excelFile.toPath(),
         new AvroDecoderBuilder(genericDataConf),
         new ExcelEncoderBuilder("A", 0, 0, converters));
 
@@ -284,8 +284,8 @@ class AvroToExcelConverterTest {
     Assertions.assertLinesMatch(Arrays.asList(sw.toString().split("\n")), dump);
     File backAvroFile = TEST_OUTPUT_DIR.resolve("back_items.avro").toFile();
     Convertion.convert(
-        excelFile,
-        backAvroFile,
+        excelFile.toPath(),
+        backAvroFile.toPath(),
         new ExcelDecoderBuilder(converters, "A", schema, 0, 0),
         new AvroEncoderBuilder(genericDataConf));
     List<String> dump2 = AvroDescriptor.convert(backAvroFile, genericData);

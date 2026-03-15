@@ -1,6 +1,9 @@
 package org.fanchuo.avroexcel.excel.encoder;
 
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.apache.avro.Schema;
 import org.fanchuo.avroexcel.core.encoder.GenericRecordConsumer;
 import org.fanchuo.avroexcel.core.encoder.IEncoderBuilder;
 import org.fanchuo.avroexcel.excel.converters.IConverters;
@@ -19,8 +22,18 @@ public class ExcelEncoderBuilder implements IEncoderBuilder {
   }
 
   @Override
-  public GenericRecordConsumer build(OutputStream outputStream) {
+  public GenericRecordConsumer build(Schema schema, OutputStream outputStream) {
     return new ExcelWriter(
-        outputStream, this.sheetname, this.converters.getExcelFieldFormater(), this.col, this.row);
+        schema,
+        outputStream,
+        this.sheetname,
+        this.converters.getExcelFieldFormater(),
+        this.col,
+        this.row);
+  }
+
+  @Override
+  public GenericRecordConsumer build(Schema schema, Path outputFile) throws IOException {
+    return this.build(schema, new BufferedOutputStream(Files.newOutputStream(outputFile)));
   }
 }
