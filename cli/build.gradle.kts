@@ -10,7 +10,7 @@ application {
 dependencies {
     implementation(project(":excel"))
     implementation(project(":core"))
-    implementation(project(":parquet"))
+    runtimeOnly(project(":parquet"))
     implementation("info.picocli:picocli:4.7.6")
     annotationProcessor("info.picocli:picocli-codegen:4.7.6")
 }

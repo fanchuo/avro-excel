@@ -1,32 +1,26 @@
 package org.fanchuo.avroexcel.cli;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
 import org.apache.avro.Schema;
+import org.fanchuo.avroexcel.core.api.CodecService;
 import org.fanchuo.avroexcel.core.avroutil.Convertion;
 import org.fanchuo.avroexcel.core.avroutil.DefaultGenericDataConf;
 import org.fanchuo.avroexcel.core.avroutil.IGenericDataConf;
-import org.fanchuo.avroexcel.core.decoder.AvroDecoderBuilder;
 import org.fanchuo.avroexcel.core.decoder.IDecoderBuilder;
-import org.fanchuo.avroexcel.core.encoder.AvroEncoderBuilder;
 import org.fanchuo.avroexcel.core.encoder.IEncoderBuilder;
 import org.fanchuo.avroexcel.excel.converters.DefaultConverters;
 import org.fanchuo.avroexcel.excel.converters.IConverters;
 import org.fanchuo.avroexcel.excel.decoder.ExcelDecoderBuilder;
 import org.fanchuo.avroexcel.excel.encoder.ExcelEncoderBuilder;
 import org.fanchuo.avroexcel.excel.infer.ExcelInferSchema;
-import org.fanchuo.avroexcel.parquet.decoder.ParquetDecoderBuilder;
-import org.fanchuo.avroexcel.parquet.encoder.ParquetEncoderBuilder;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "AvroExcel", version = "1.0.0", mixinStandardHelpOptions = true)
 public class AvroExcel implements Callable<Void> {
-
-  private enum Encoding {
-    EXCEL,
-    AVRO,
-    PARQUET,
-  }
 
   @CommandLine.Option(
       names = {"-i"},
@@ -65,12 +59,12 @@ public class AvroExcel implements Callable<Void> {
   @CommandLine.Option(
       names = {"-e"},
       description = "Input encoding type")
-  private Encoding inputEncoding;
+  private String inputEncoding;
 
   @CommandLine.Option(
       names = {"-f"},
       description = "Output encoding type")
-  private Encoding outputEncoding;
+  private String outputEncoding;
 
   public static void main(String[] args) {
     int exitCode = new CommandLine(new AvroExcel()).execute(args);
@@ -81,38 +75,32 @@ public class AvroExcel implements Callable<Void> {
   public Void call() throws Exception {
     IConverters converters = new DefaultConverters();
     IGenericDataConf genericDataConf = new DefaultGenericDataConf();
+    ServiceLoader<CodecService> loader = ServiceLoader.load(CodecService.class);
+    Map<String, CodecService> codecs = new HashMap<>();
+    for (CodecService codecService : loader) {
+      codecs.put(codecService.getName(), codecService);
+    }
     IEncoderBuilder encoderBuilder;
     IDecoderBuilder decoderBuilder;
-    switch (this.inputEncoding) {
-      case EXCEL:
-        Schema schema;
-        if (schemaFile != null) {
-          schema = new Schema.Parser().parse(schemaFile);
-        } else {
-          schema =
-              ExcelInferSchema.inferSchema(
-                  inputFile, tab, col, row, converters.getExcelFieldParser());
-        }
-        decoderBuilder = new ExcelDecoderBuilder(converters, this.tab, schema, this.col, this.row);
-        break;
-      case PARQUET:
-        decoderBuilder = new ParquetDecoderBuilder(genericDataConf);
-        break;
-      case AVRO:
-      default:
-        decoderBuilder = new AvroDecoderBuilder(genericDataConf);
-        break;
+    if ("EXCEL".equals(this.inputEncoding)) {
+      Schema schema;
+      if (schemaFile != null) {
+        schema = new Schema.Parser().parse(schemaFile);
+      } else {
+        schema =
+            ExcelInferSchema.inferSchema(
+                inputFile, tab, col, row, converters.getExcelFieldParser());
+      }
+      decoderBuilder = new ExcelDecoderBuilder(converters, this.tab, schema, this.col, this.row);
+    } else {
+      CodecService codec = codecs.get(this.inputEncoding);
+      decoderBuilder = codec.makeDecoder(genericDataConf);
     }
-    switch (this.outputEncoding) {
-      case EXCEL:
-        encoderBuilder = new ExcelEncoderBuilder(this.tab, this.col, this.row, converters);
-        break;
-      case PARQUET:
-        encoderBuilder = new ParquetEncoderBuilder(genericDataConf);
-        break;
-      case AVRO:
-      default:
-        encoderBuilder = new AvroEncoderBuilder(genericDataConf);
+    if ("EXCEL".equals(this.outputEncoding)) {
+      encoderBuilder = new ExcelEncoderBuilder(this.tab, this.col, this.row, converters);
+    } else {
+      CodecService codec = codecs.get(this.inputEncoding);
+      encoderBuilder = codec.makeEncoder(genericDataConf);
     }
     Convertion.convert(
         this.inputFile.toPath(), this.outputFile.toPath(), decoderBuilder, encoderBuilder);
