@@ -1,10 +1,15 @@
 package org.fanchuo.avroexcel.excel.converters;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.util.TimePeriod;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -55,6 +60,13 @@ public class ExcelFieldParser implements IExcelFieldParser {
   static class StringExcelFieldParser extends StringEncodedParser {
     @Override
     public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
+      if (schema.getLogicalType() instanceof LogicalTypes.Uuid) {
+        try {
+          return new ParserResult(null, UUID.fromString(value));
+        } catch (IllegalArgumentException e) {
+          return new ParserResult(new FormatErrorMessage("'%s' is not UUID", address, value), null);
+        }
+      }
       return new ParserResult(null, value);
     }
   }
@@ -174,6 +186,15 @@ public class ExcelFieldParser implements IExcelFieldParser {
   static class BytesExcelFieldParser extends StringEncodedParser {
     @Override
     public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
+      if (schema.getLogicalType() instanceof LogicalTypes.BigDecimal) {
+        try {
+          return new ParserResult(null, new BigDecimal(value));
+        } catch (NumberFormatException e) {
+          return new ParserResult(
+              new FormatErrorMessage("Cell value '%s' is not a valid decimal", address, value),
+              null);
+        }
+      }
       try {
         return new ParserResult(null, BytesUtils.stringToBytes(value));
       } catch (IllegalArgumentException e) {
@@ -186,6 +207,24 @@ public class ExcelFieldParser implements IExcelFieldParser {
   static class FixedExcelFieldParser extends StringEncodedParser {
     @Override
     public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
+      if (schema.getLogicalType() instanceof LogicalTypes.Duration) {
+        try {
+          return new ParserResult(null, TimePeriod.from(Duration.parse(value)));
+        } catch (DateTimeParseException e) {
+          return new ParserResult(
+              new FormatErrorMessage("Cell value '%s' is not an ISO-8601 duration", address, value),
+              null);
+        }
+      }
+      if (schema.getLogicalType() instanceof LogicalTypes.Decimal) {
+        try {
+          return new ParserResult(null, new BigDecimal(value));
+        } catch (NumberFormatException e) {
+          return new ParserResult(
+              new FormatErrorMessage("Cell value '%s' is not a valid decimal", address, value),
+              null);
+        }
+      }
       try {
         return new ParserResult(
             null, new GenericData.Fixed(schema, BytesUtils.stringToByteArray(value)));

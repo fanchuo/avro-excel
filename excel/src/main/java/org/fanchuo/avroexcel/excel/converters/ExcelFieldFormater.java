@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import org.apache.avro.generic.GenericFixed;
+import org.apache.avro.util.TimePeriod;
 import org.apache.poi.ss.usermodel.*;
 import org.fanchuo.avroexcel.core.avroutil.BytesUtils;
 import org.fanchuo.avroexcel.core.avroutil.Zone;
@@ -45,6 +46,9 @@ public class ExcelFieldFormater implements IExcelFieldFormater {
     } else if (value instanceof LocalDateTime) {
       c.setCellValue((LocalDateTime) value);
       c.setCellStyle(this.makeDatetimeStyle(zone, c));
+    } else if (value instanceof TimePeriod) {
+      TimePeriod tp = (TimePeriod) value;
+      c.setCellValue(tp.toDuration().toString());
     } else {
       c.setCellValue(String.valueOf(value));
     }

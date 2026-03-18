@@ -3,22 +3,26 @@ package org.fanchuo.avroexcel;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
+import org.apache.avro.util.TimePeriod;
 import org.apache.commons.io.IOUtils;
 import org.fanchuo.avroexcel.core.avroutil.Convertion;
 import org.fanchuo.avroexcel.core.avroutil.DefaultGenericDataConf;
@@ -252,13 +256,22 @@ class AvroToExcelConverterTest {
   public void validateByteBuffer() throws IOException, DecoderSchemaException {
     Schema bytes = Schema.create(Schema.Type.BYTES);
     Schema fixed = Schema.createFixed("myfixed", null, null, 4);
+    Schema uuid = new Schema.Parser().parse("{\"type\": \"string\", \"logicalType\": \"uuid\"}");
+    Schema duration =
+        LogicalTypes.duration().addToSchema(Schema.createFixed("MyDuration", null, null, 12));
+    Schema bigdecimal = LogicalTypes.bigDecimal().addToSchema(Schema.create(Schema.Type.BYTES));
     Schema schema =
         Schema.createRecord(
             "test",
             null,
             null,
             false,
-            Arrays.asList(new Schema.Field("a", bytes), new Schema.Field("b", fixed)));
+            Arrays.asList(
+                new Schema.Field("a", bytes),
+                new Schema.Field("b", fixed),
+                new Schema.Field("c", uuid),
+                new Schema.Field("d", duration),
+                new Schema.Field("e", bigdecimal)));
     File avroFile = TEST_OUTPUT_DIR.resolve("items.avro").toFile();
     createSampleAvroFile2(avroFile, schema);
 
@@ -510,6 +523,9 @@ class AvroToExcelConverterTest {
       GenericRecord item = new GenericData.Record(schema);
       item.put("a", ByteBuffer.wrap(new byte[] {1, 2, 3}));
       item.put("b", new GenericData.Fixed(schema.getField("b").schema(), new byte[] {4, 5, 6, 7}));
+      item.put("c", UUID.fromString("12442fa6-4003-4457-a44a-b7110ed30433"));
+      item.put("d", TimePeriod.from(Duration.parse("P2DT3H4M")));
+      item.put("e", new BigDecimal("3.14"));
       dataFileWriter.append(item);
     }
   }

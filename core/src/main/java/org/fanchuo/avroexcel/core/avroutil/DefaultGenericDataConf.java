@@ -1,5 +1,6 @@
 package org.fanchuo.avroexcel.core.avroutil;
 
+import org.apache.avro.Conversions;
 import org.apache.avro.data.TimeConversions;
 import org.apache.avro.generic.GenericData;
 
@@ -20,6 +21,10 @@ public class DefaultGenericDataConf implements IGenericDataConf {
     genericData.addLogicalTypeConversion(new TimeConversions.LocalTimestampMicrosConversion());
     genericData.addLogicalTypeConversion(new TimeConversions.LocalTimestampNanosConversion());
     genericData.addLogicalTypeConversion(new TimeConversions.LocalTimestampMillisConversion());
+    genericData.addLogicalTypeConversion(new Conversions.UUIDConversion());
+    genericData.addLogicalTypeConversion(new Conversions.DurationConversion());
+    genericData.addLogicalTypeConversion(new Conversions.DecimalConversion());
+    genericData.addLogicalTypeConversion(new Conversions.BigDecimalConversion());
     return genericData;
   }
 
