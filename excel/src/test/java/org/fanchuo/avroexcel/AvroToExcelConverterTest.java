@@ -260,6 +260,11 @@ class AvroToExcelConverterTest {
     Schema duration =
         LogicalTypes.duration().addToSchema(Schema.createFixed("MyDuration", null, null, 12));
     Schema bigdecimal = LogicalTypes.bigDecimal().addToSchema(Schema.create(Schema.Type.BYTES));
+    Schema uuidFixed =
+        LogicalTypes.uuid().addToSchema(Schema.createFixed("uuidFixed", null, null, 16));
+    Schema decimal =
+        LogicalTypes.decimal(4, 3).addToSchema(Schema.createFixed("decimal", null, null, 2));
+    Schema decimal2 = LogicalTypes.decimal(4, 3).addToSchema(Schema.create(Schema.Type.BYTES));
     Schema schema =
         Schema.createRecord(
             "test",
@@ -271,7 +276,10 @@ class AvroToExcelConverterTest {
                 new Schema.Field("b", fixed),
                 new Schema.Field("c", uuid),
                 new Schema.Field("d", duration),
-                new Schema.Field("e", bigdecimal)));
+                new Schema.Field("e", bigdecimal),
+                new Schema.Field("f", uuidFixed),
+                new Schema.Field("g", decimal),
+                new Schema.Field("h", decimal2)));
     File avroFile = TEST_OUTPUT_DIR.resolve("items.avro").toFile();
     createSampleAvroFile2(avroFile, schema);
 
@@ -526,6 +534,9 @@ class AvroToExcelConverterTest {
       item.put("c", UUID.fromString("12442fa6-4003-4457-a44a-b7110ed30433"));
       item.put("d", TimePeriod.from(Duration.parse("P2DT3H4M")));
       item.put("e", new BigDecimal("3.14"));
+      item.put("f", UUID.fromString("22442fa6-4003-4457-a44a-b7110ed30433"));
+      item.put("g", new BigDecimal("2.718"));
+      item.put("h", new BigDecimal("1.414"));
       dataFileWriter.append(item);
     }
   }

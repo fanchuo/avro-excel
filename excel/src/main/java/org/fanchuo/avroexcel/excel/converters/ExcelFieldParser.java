@@ -28,6 +28,23 @@ public class ExcelFieldParser implements IExcelFieldParser {
     public abstract ParserResult analyze(Schema schema, Cell cell, CellAddress address);
   }
 
+  private static ParserResult parseUuid(String value, CellAddress address) {
+    try {
+      return new ParserResult(null, UUID.fromString(value));
+    } catch (IllegalArgumentException e) {
+      return new ParserResult(new FormatErrorMessage("'%s' is not UUID", address, value), null);
+    }
+  }
+
+  private static ParserResult parseDecimal(String value, CellAddress address) {
+    try {
+      return new ParserResult(null, new BigDecimal(value));
+    } catch (NumberFormatException e) {
+      return new ParserResult(
+          new FormatErrorMessage("Cell value '%s' is not a valid decimal", address, value), null);
+    }
+  }
+
   abstract static class StringEncodedParser extends TypeParser {
     @Override
     public final ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
@@ -61,11 +78,7 @@ public class ExcelFieldParser implements IExcelFieldParser {
     @Override
     public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
       if (schema.getLogicalType() instanceof LogicalTypes.Uuid) {
-        try {
-          return new ParserResult(null, UUID.fromString(value));
-        } catch (IllegalArgumentException e) {
-          return new ParserResult(new FormatErrorMessage("'%s' is not UUID", address, value), null);
-        }
+        return parseUuid(value, address);
       }
       return new ParserResult(null, value);
     }
@@ -186,14 +199,9 @@ public class ExcelFieldParser implements IExcelFieldParser {
   static class BytesExcelFieldParser extends StringEncodedParser {
     @Override
     public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
-      if (schema.getLogicalType() instanceof LogicalTypes.BigDecimal) {
-        try {
-          return new ParserResult(null, new BigDecimal(value));
-        } catch (NumberFormatException e) {
-          return new ParserResult(
-              new FormatErrorMessage("Cell value '%s' is not a valid decimal", address, value),
-              null);
-        }
+      if (schema.getLogicalType() instanceof LogicalTypes.BigDecimal
+          || schema.getLogicalType() instanceof LogicalTypes.Decimal) {
+        return parseDecimal(value, address);
       }
       try {
         return new ParserResult(null, BytesUtils.stringToBytes(value));
@@ -207,6 +215,9 @@ public class ExcelFieldParser implements IExcelFieldParser {
   static class FixedExcelFieldParser extends StringEncodedParser {
     @Override
     public ParserResult analyzeStr(Schema schema, String value, CellAddress address) {
+      if (schema.getLogicalType() instanceof LogicalTypes.Uuid) {
+        return parseUuid(value, address);
+      }
       if (schema.getLogicalType() instanceof LogicalTypes.Duration) {
         try {
           return new ParserResult(null, TimePeriod.from(Duration.parse(value)));
@@ -217,13 +228,7 @@ public class ExcelFieldParser implements IExcelFieldParser {
         }
       }
       if (schema.getLogicalType() instanceof LogicalTypes.Decimal) {
-        try {
-          return new ParserResult(null, new BigDecimal(value));
-        } catch (NumberFormatException e) {
-          return new ParserResult(
-              new FormatErrorMessage("Cell value '%s' is not a valid decimal", address, value),
-              null);
-        }
+        return parseDecimal(value, address);
       }
       try {
         return new ParserResult(
