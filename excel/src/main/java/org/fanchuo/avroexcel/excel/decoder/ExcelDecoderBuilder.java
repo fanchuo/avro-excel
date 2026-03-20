@@ -12,10 +12,6 @@ import org.fanchuo.avroexcel.excel.excelutil.ExcelSheetReader;
 import org.fanchuo.avroexcel.excel.headerinfo.HeaderInfoExcelReader;
 
 public class ExcelDecoderBuilder implements IDecoderBuilder {
-  private static String makeSheetname(String sheetName) {
-    if (sheetName == null) return "tab";
-    return sheetName;
-  }
 
   private final IConverters converters;
   private final String sheetName;
@@ -26,7 +22,7 @@ public class ExcelDecoderBuilder implements IDecoderBuilder {
   public ExcelDecoderBuilder(
       IConverters converters, String sheetName, Schema schema, int col, int row) {
     this.converters = converters;
-    this.sheetName = makeSheetname(sheetName);
+    this.sheetName = sheetName;
     this.schema = schema;
     this.col = col;
     this.row = row;

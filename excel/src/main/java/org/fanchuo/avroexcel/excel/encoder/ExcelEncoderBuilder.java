@@ -14,8 +14,13 @@ public class ExcelEncoderBuilder implements IEncoderBuilder {
   private final int row;
   private final IConverters converters;
 
+  private static String makeSheetname(String sheetName) {
+    if (sheetName == null) return "tab";
+    return sheetName;
+  }
+
   public ExcelEncoderBuilder(String sheetname, int col, int row, IConverters converters) {
-    this.sheetname = sheetname;
+    this.sheetname = makeSheetname(sheetname);
     this.col = col;
     this.row = row;
     this.converters = converters;

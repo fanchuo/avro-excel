@@ -99,7 +99,7 @@ public class AvroExcel implements Callable<Void> {
     if ("EXCEL".equals(this.outputEncoding)) {
       encoderBuilder = new ExcelEncoderBuilder(this.tab, this.col, this.row, converters);
     } else {
-      CodecService codec = codecs.get(this.inputEncoding);
+      CodecService codec = codecs.get(this.outputEncoding);
       encoderBuilder = codec.makeEncoder(genericDataConf);
     }
     Convertion.convert(

@@ -256,17 +256,21 @@ public class ExcelFieldParser implements IExcelFieldParser {
 
   public ParserResult checkCompatible(Schema s, Cell cell, CellAddress address) {
     List<Schema> schemas = ParserTools.flatten(s, x -> registry.containsKey(x.getType()));
-    ParserResult stringTypeParser = null;
+    ParserResult fallbackResult = null;
     for (Schema schema : schemas) {
       TypeParser typeParser = registry.get(schema.getType());
       ParserResult result = typeParser.analyze(schema, cell, address);
-      if (schema.getType() == Schema.Type.STRING) {
-        stringTypeParser = result;
-      } else {
-        return result;
+      if (result.isCompatible()) {
+        if (schema.getType() == Schema.Type.STRING) {
+          fallbackResult = result;
+        } else {
+          return result;
+        }
+      } else if (fallbackResult == null) {
+        fallbackResult = result;
       }
     }
-    return stringTypeParser;
+    return fallbackResult;
   }
 
   @Override
