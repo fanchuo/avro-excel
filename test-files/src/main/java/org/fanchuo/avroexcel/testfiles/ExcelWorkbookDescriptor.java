@@ -1,4 +1,4 @@
-package org.fanchuo.avroexcel;
+package org.fanchuo.avroexcel.testfiles;
 
 import java.io.File;
 import java.io.FileInputStream;

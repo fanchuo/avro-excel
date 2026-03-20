@@ -67,8 +67,12 @@ public class AvroExcel implements Callable<Void> {
   private String outputEncoding;
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new AvroExcel()).execute(args);
+    int exitCode = execute(args);
     System.exit(exitCode);
+  }
+
+  public static int execute(String... args) {
+    return new CommandLine(new AvroExcel()).execute(args);
   }
 
   @Override

@@ -2,8 +2,10 @@ plugins {
     `java-module`
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
-    implementation(project(":core"))
-    testImplementation(project(":test-files"))
     implementation("org.apache.poi:poi-ooxml:5.4.1")
 }

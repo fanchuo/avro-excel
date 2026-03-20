@@ -4,3 +4,5 @@ include("excel")
 include("parquet")
 include("report-aggregator")
 include("cli")
+
+include("test-files")

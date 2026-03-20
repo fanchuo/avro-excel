@@ -10,6 +10,9 @@ repositories {
 dependencies {
     jacocoAggregation(project(":core"))
     jacocoAggregation(project(":excel"))
+    jacocoAggregation(project(":parquet"))
+    jacocoAggregation(project(":cli"))
+    jacocoAggregation(project(":test-files"))
 }
 
 reporting {

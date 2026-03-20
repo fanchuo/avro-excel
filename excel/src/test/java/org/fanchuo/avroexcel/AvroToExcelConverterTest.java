@@ -35,6 +35,8 @@ import org.fanchuo.avroexcel.excel.converters.IConverters;
 import org.fanchuo.avroexcel.excel.decoder.ExcelDecoderBuilder;
 import org.fanchuo.avroexcel.excel.encoder.ExcelEncoderBuilder;
 import org.fanchuo.avroexcel.excel.infer.ExcelInferSchema;
+import org.fanchuo.avroexcel.testfiles.AvroDescriptor;
+import org.fanchuo.avroexcel.testfiles.ExcelWorkbookDescriptor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
