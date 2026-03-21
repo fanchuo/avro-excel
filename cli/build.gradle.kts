@@ -5,6 +5,7 @@ plugins {
 
 application {
     mainClass.set("org.fanchuo.avroexcel.cli.AvroExcel")
+    applicationName = "avroexcel-cli"
 }
 
 dependencies {
