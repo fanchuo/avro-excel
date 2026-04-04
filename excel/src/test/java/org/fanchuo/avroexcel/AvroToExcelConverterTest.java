@@ -38,7 +38,7 @@ import org.fanchuo.avroexcel.excel.infer.ExcelInferSchema;
 import org.fanchuo.avroexcel.testfiles.AvroDescriptor;
 import org.fanchuo.avroexcel.testfiles.ExcelWorkbookDescriptor;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class AvroToExcelConverterTest {
@@ -48,8 +48,8 @@ class AvroToExcelConverterTest {
   private final IGenericDataConf genericDataConf = new DefaultGenericDataConf();
   private final GenericData genericData = genericDataConf.getGenericData();
 
-  @BeforeEach
-  void setUp() throws IOException {
+  @BeforeAll
+  static void setUp() throws IOException {
     if (Files.exists(TEST_OUTPUT_DIR)) {
       // Recursively delete the directory
       try (Stream<Path> paths = Files.walk(TEST_OUTPUT_DIR)) {
@@ -147,12 +147,10 @@ class AvroToExcelConverterTest {
     } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
-              + "  [A4] Cannot match schema [RECORD test [field_txt, field_num, field_bool, field_date, field_time], \"null\"]\n"
+              + "  [A4] Cannot match schema RECORD test [field_txt, field_num, field_bool, field_date, field_time]\n"
               + "  Caused by:\n"
-              + "    [A4] Cannot match schema RECORD test [field_txt, field_num, field_bool, field_date, field_time]\n"
-              + "    Caused by:\n"
-              + "      [A4] Failed to match record for field field_num\n"
-              + "      [B4] Cell type 'STRING' is not NUMERIC",
+              + "    [A4] Failed to match record for field field_num\n"
+              + "    [B4] Cell type 'STRING' is not NUMERIC",
           e.getMessage());
     }
   }
@@ -180,10 +178,8 @@ class AvroToExcelConverterTest {
     } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
-              + "  [A2] Cannot match schema [RECORD test [field_txt, field_num, field_bool], \"null\"]\n"
-              + "  Caused by:\n"
-              + "    [A2] Cannot match schema RECORD test [field_txt, field_num, field_bool]\n"
-              + "    [A2] Failed to match schema RECORD test [field_txt, field_num, field_bool], because of additional fields defined [field_date, field_time]",
+              + "  [A2] Cannot match schema RECORD test [field_txt, field_num, field_bool]\n"
+              + "  [A2] Failed to match schema RECORD test [field_txt, field_num, field_bool], because of additional fields defined [field_date, field_time]",
           e.getMessage());
     }
   }
@@ -219,12 +215,10 @@ class AvroToExcelConverterTest {
     } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
-              + "  [A3] Cannot match schema [RECORD test [a, b], \"null\"]\n"
+              + "  [A3] Cannot match schema RECORD test [a, b]\n"
               + "  Caused by:\n"
-              + "    [A3] Cannot match schema RECORD test [a, b]\n"
-              + "    Caused by:\n"
-              + "      [A3] Failed to match record for field b\n"
-              + "      [B3] Cannot be both ARRAY and RECORD",
+              + "    [A3] Failed to match record for field b\n"
+              + "    [B3] Cannot be both ARRAY and RECORD",
           e.getMessage());
     }
   }
@@ -246,10 +240,8 @@ class AvroToExcelConverterTest {
     } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
-              + "  [A2] Cannot match schema [RECORD test [a], \"null\"]\n"
-              + "  Caused by:\n"
-              + "    [A2] Cannot match schema RECORD test [a]\n"
-              + "    [A2] Failed to match schema RECORD test [a], because of additional fields defined [b]",
+              + "  [A2] Cannot match schema RECORD test [a]\n"
+              + "  [A2] Failed to match schema RECORD test [a], because of additional fields defined [b]",
           e.getMessage());
     }
   }
@@ -346,12 +338,10 @@ class AvroToExcelConverterTest {
     } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
-              + "  [A3] Cannot match schema [RECORD test [a, b], \"null\"]\n"
+              + "  [A3] Cannot match schema RECORD test [a, b]\n"
               + "  Caused by:\n"
-              + "    [A3] Cannot match schema RECORD test [a, b]\n"
-              + "    Caused by:\n"
-              + "      [A3] Failed to match record for field b\n"
-              + "      [B3] 'e' is not one of [c, d]",
+              + "    [A3] Failed to match record for field b\n"
+              + "    [B3] 'e' is not one of [c, d]",
           e.getMessage());
     }
   }
@@ -412,10 +402,8 @@ class AvroToExcelConverterTest {
     } catch (DecoderSchemaException e) {
       assertEquals(
           "Caused by:\n"
-              + "  [A2] Cannot match schema [RECORD test [a, b, c], \"null\"]\n"
-              + "  Caused by:\n"
-              + "    [A2] Cannot match schema RECORD test [a, b, c]\n"
-              + "    [A2] Failed to find field c for schema RECORD test [a, b, c]",
+              + "  [A2] Cannot match schema RECORD test [a, b, c]\n"
+              + "  [A2] Failed to find field c for schema RECORD test [a, b, c]",
           e.getMessage());
     }
   }

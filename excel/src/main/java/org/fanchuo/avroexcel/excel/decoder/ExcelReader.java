@@ -7,12 +7,10 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellAddress;
-import org.fanchuo.avroexcel.core.avroutil.CompositeErrorMessage;
 import org.fanchuo.avroexcel.core.avroutil.ErrorMessage;
 import org.fanchuo.avroexcel.core.avroutil.FormatErrorMessage;
 import org.fanchuo.avroexcel.core.decoder.DecoderSchemaException;
 import org.fanchuo.avroexcel.core.decoder.GenericRecordIterator;
-import org.fanchuo.avroexcel.core.encoder.SchemaReport;
 import org.fanchuo.avroexcel.core.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.core.recordgeometry.RecordGeometry;
 import org.fanchuo.avroexcel.excel.converters.IExcelFieldParser;
@@ -26,6 +24,7 @@ public class ExcelReader implements GenericRecordIterator {
 
   private final ExcelSheetReader sheet;
   private final Schema schema;
+  private final Schema nullableSchema;
   private final HeaderInfo headerInfo;
   private final int col;
   private final IExcelFieldParser excelFieldParser;
@@ -41,26 +40,20 @@ public class ExcelReader implements GenericRecordIterator {
     this.excelFieldParser = excelFieldParser;
     this.sheet = sheet;
     this.schema = schema;
+    this.nullableSchema = Schema.createUnion(this.schema, Schema.create(Schema.Type.NULL));
     this.headerInfo = headerInfo;
     this.col = col;
     this.row = row;
   }
 
   public GenericRecord readRecord() throws DecoderSchemaException {
-    Schema s = Schema.createUnion(this.schema, Schema.create(Schema.Type.NULL));
     ExcelRecord excelRecords =
-        visitObject(this.col, this.row, Collections.singletonList(s), this.headerInfo);
+        visitObject(
+            this.col, this.row, Collections.singletonList(this.nullableSchema), this.headerInfo);
     if (excelRecords.candidates.isEmpty()) {
-      CellAddress address = new CellAddress(this.row, this.col);
-      CompositeErrorMessage compositeErrorMessage = new CompositeErrorMessage();
-      for (Map.Entry<Schema, ErrorMessage> entry : excelRecords.failures.entrySet()) {
-        compositeErrorMessage.add(
-            new FormatErrorMessage(
-                "Cannot match schema %s", address, new SchemaReport(entry.getKey())));
-        compositeErrorMessage.add(entry.getValue());
-      }
+      ErrorMessage errorMessage = excelRecords.failures.get(this.nullableSchema);
       StringBuilder sb = new StringBuilder();
-      compositeErrorMessage.dump("", sb);
+      errorMessage.dump("", sb);
       throw new DecoderSchemaException(sb.toString());
     }
     GenericRecord toReturn = (GenericRecord) excelRecords.candidates.values().iterator().next();

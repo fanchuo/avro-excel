@@ -1,11 +1,4 @@
-# Avro Excel Core
-
-This module is the core of the conversion library between Avro and Excel formats. It provides the necessary tools to convert, validate, and manipulate data between these two formats.
-
-## Main Goal
-
-The main goal of this project is to facilitate data exchange between systems using Avro as a serialization format and users who prefer to handle data in spreadsheets like Excel. A major feature is the ability to **validate an Excel file** against an Avro schema, thus ensuring data integrity before processing.
-
+# Avro Excel API
 ## Features
 
 ### 1. Avro to Excel Conversion
@@ -60,12 +53,10 @@ try {
     System.out.println(e.getMessage());
     // Output:
     // Caused by:
-    //   [A4] Cannot match schema [RECORD test [...], "null"]
+    //   [A4] Cannot match schema RECORD test [...]
     //   Caused by:
-    //     [A4] Cannot match schema RECORD test [...]
-    //     Caused by:
-    //       [A4] Failed to match record for field field_num
-    //       [B4] Cell type 'STRING' is not NUMERIC
+    //     [A4] Failed to match record for field field_num
+    //     [B4] Cell type 'STRING' is not NUMERIC
 }
 ```
 

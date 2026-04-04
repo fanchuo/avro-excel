@@ -19,7 +19,7 @@ import org.fanchuo.avroexcel.excel.encoder.ExcelEncoderBuilder;
 import org.fanchuo.avroexcel.excel.infer.ExcelInferSchema;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "AvroExcel", version = "1.0.0", mixinStandardHelpOptions = true)
+@CommandLine.Command(name = "avroexcel-cli", version = "1.0.0", mixinStandardHelpOptions = true)
 public class AvroExcel implements Callable<Void> {
 
   @CommandLine.Option(
