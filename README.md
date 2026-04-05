@@ -3,8 +3,8 @@
 ## Context: csv or xlsx ?
 
 When contributing to a project that involves data exchange between different stakeholders,
-you eventually will end up to choose many encoding technologies. The CSV format is one of
-those options. The big plus about CSV are its simplicity and the fact it could be read and
+you eventually will end up to choose several encoding technologies. The CSV format is one of
+those options, and its big plus are its simplicity and the fact it could be read and
 edited using Excel.
 
 So picking CSV means:
@@ -145,3 +145,38 @@ This can be encoded using the following schema.
     ]
 }
 ```
+##### Collections
+
+<table>
+  <tr>
+    <th rowspan="2">name</th>
+    <th colspan="2">some_list</th>
+  </tr>
+  <tr>
+    <th>*size</th>
+    <th>*</th>
+  </tr>
+  <tr>
+    <td>Adam</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>Ben</td>
+    <td>*</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td>Charlie</td>
+    <td>*</td>
+    <td>123.4</td>
+  </tr>
+  <tr>
+    <td rowspan="2">Daniel</td>
+    <td rowspan="2">*</td>
+    <td>123.4</td>
+  </tr>
+  <tr>
+    <td>3.14</td>
+  </tr>
+</table>
