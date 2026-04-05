@@ -26,7 +26,7 @@ the [POI project](https://github.com/apache/poi).
 
 ## Features provided
 
-You can use the [CLI module](./cli/README.md) or directly the [Excel API](./excel/README.md).
+You can use the [CLI module](./cli) or directly the [Excel API](./excel).
 
 ### Conversion xlsx/avro/parquet
 
@@ -141,13 +141,7 @@ This can be encoded using the following schema.
             ]
           }
         },
-        {
-          "name": "creation_date",
-          "type": {
-            "type": "long",
-            "logicalType": "timestamp-millis"
-          }
-        }
+        { "name": "creation_date", "type": { "type": "long", "logicalType": "timestamp-millis" } }
     ]
 }
 ```
