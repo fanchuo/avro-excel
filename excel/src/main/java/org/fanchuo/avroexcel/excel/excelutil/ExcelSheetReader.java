@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fanchuo.avroexcel.core.headerinfo.HeaderInfo;
 
 public class ExcelSheetReader {
   private final Sheet sheet;
@@ -67,5 +69,15 @@ public class ExcelSheetReader {
       else sheet = workbook.getSheet(sheetName);
       return new ExcelSheetReader(sheet);
     }
+  }
+
+  public boolean emptyLine(int col, int row, HeaderInfo headerInfo) {
+    for (int i = col; i < col + headerInfo.colSpan; i++) {
+      Cell cell = this.getCell(i, row);
+      if (cell != null && cell.getCellType() != CellType.BLANK) {
+        return false;
+      }
+    }
+    return true;
   }
 }

@@ -8,6 +8,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.io.LocalInputFile;
 import org.fanchuo.avroexcel.core.decoder.GenericRecordIterator;
+import org.fanchuo.avroexcel.core.decoder.ValidatedGenericRecord;
 
 public class ParquetReader implements GenericRecordIterator {
   private final org.apache.parquet.hadoop.ParquetReader<GenericRecord> parquetReader;
@@ -22,11 +23,11 @@ public class ParquetReader implements GenericRecordIterator {
   }
 
   @Override
-  public GenericRecord readRecord() throws IOException {
+  public ValidatedGenericRecord readRecord() throws IOException {
     if (lastRead == null) return null;
     GenericRecord rec = this.lastRead;
     this.lastRead = this.parquetReader.read();
-    return rec;
+    return new ValidatedGenericRecord(rec);
   }
 
   @Override

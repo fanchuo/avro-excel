@@ -9,8 +9,8 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellAddress;
 import org.fanchuo.avroexcel.core.avroutil.ErrorMessage;
 import org.fanchuo.avroexcel.core.avroutil.FormatErrorMessage;
-import org.fanchuo.avroexcel.core.decoder.DecoderSchemaException;
 import org.fanchuo.avroexcel.core.decoder.GenericRecordIterator;
+import org.fanchuo.avroexcel.core.decoder.ValidatedGenericRecord;
 import org.fanchuo.avroexcel.core.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.core.recordgeometry.RecordGeometry;
 import org.fanchuo.avroexcel.excel.converters.IExcelFieldParser;
@@ -24,7 +24,6 @@ public class ExcelReader implements GenericRecordIterator {
 
   private final ExcelSheetReader sheet;
   private final Schema schema;
-  private final Schema nullableSchema;
   private final HeaderInfo headerInfo;
   private final int col;
   private final IExcelFieldParser excelFieldParser;
@@ -40,25 +39,22 @@ public class ExcelReader implements GenericRecordIterator {
     this.excelFieldParser = excelFieldParser;
     this.sheet = sheet;
     this.schema = schema;
-    this.nullableSchema = Schema.createUnion(this.schema, Schema.create(Schema.Type.NULL));
     this.headerInfo = headerInfo;
     this.col = col;
     this.row = row;
   }
 
-  public GenericRecord readRecord() throws DecoderSchemaException {
+  public ValidatedGenericRecord readRecord() {
+    if (this.sheet.emptyLine(this.col, this.row, this.headerInfo)) return null;
     ExcelRecord excelRecords =
-        visitObject(
-            this.col, this.row, Collections.singletonList(this.nullableSchema), this.headerInfo);
+        visitObject(this.col, this.row, Collections.singletonList(this.schema), this.headerInfo);
+    this.row += excelRecords.recordGeometry.rowSpan;
     if (excelRecords.candidates.isEmpty()) {
-      ErrorMessage errorMessage = excelRecords.failures.get(this.nullableSchema);
-      StringBuilder sb = new StringBuilder();
-      errorMessage.dump("", sb);
-      throw new DecoderSchemaException(sb.toString());
+      ErrorMessage errorMessage = excelRecords.failures.get(this.schema);
+      return new ValidatedGenericRecord(errorMessage);
     }
     GenericRecord toReturn = (GenericRecord) excelRecords.candidates.values().iterator().next();
-    this.row += excelRecords.recordGeometry.rowSpan;
-    return toReturn;
+    return new ValidatedGenericRecord(toReturn);
   }
 
   private ExcelRecord visitScalar(int col, int row, List<Schema> schemas) {

@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import org.apache.avro.Schema;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.fanchuo.avroexcel.core.avroutil.Type;
 import org.fanchuo.avroexcel.core.headerinfo.HeaderInfo;
 import org.fanchuo.avroexcel.excel.converters.IExcelFieldParser;
@@ -31,7 +29,7 @@ public class ExcelInferSchema {
     HeaderInfo headerInfo = HeaderInfoExcelReader.visitSheet(excelSheetReader, col, row);
     row += headerInfo.rowSpan;
     DataVisitor dataVisitor = new DataVisitor(fieldParser);
-    while (!emptyLine(excelSheetReader, col, row, headerInfo)) {
+    while (!excelSheetReader.emptyLine(col, row, headerInfo)) {
       int rowSpan = dataVisitor.visitSheet(excelSheetReader, col, row, headerInfo);
       if (rowSpan <= 0) break;
       row += rowSpan;
@@ -75,16 +73,5 @@ public class ExcelInferSchema {
       return Type.NULL.schema;
     }
     return union.get(0);
-  }
-
-  private static boolean emptyLine(
-      ExcelSheetReader excelSheetReader, int col, int row, HeaderInfo headerInfo) {
-    for (int i = col; i < col + headerInfo.colSpan; i++) {
-      Cell cell = excelSheetReader.getCell(i, row);
-      if (cell != null && cell.getCellType() != CellType.BLANK) {
-        return false;
-      }
-    }
-    return true;
   }
 }

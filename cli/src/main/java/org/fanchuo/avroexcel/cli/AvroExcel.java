@@ -107,7 +107,7 @@ public class AvroExcel implements Callable<Void> {
       encoderBuilder = codec.makeEncoder(genericDataConf);
     }
     Convertion.convert(
-        this.inputFile.toPath(), this.outputFile.toPath(), decoderBuilder, encoderBuilder);
+        this.inputFile.toPath(), this.outputFile.toPath(), decoderBuilder, encoderBuilder, null);
     return null;
   }
 }

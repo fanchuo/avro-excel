@@ -2,10 +2,10 @@ package org.fanchuo.avroexcel.core.avroutil;
 
 import java.io.*;
 import java.nio.file.Path;
-import org.apache.avro.generic.GenericRecord;
-import org.fanchuo.avroexcel.core.decoder.DecoderSchemaException;
+import java.util.function.Consumer;
 import org.fanchuo.avroexcel.core.decoder.GenericRecordIterator;
 import org.fanchuo.avroexcel.core.decoder.IDecoderBuilder;
+import org.fanchuo.avroexcel.core.decoder.ValidatedGenericRecord;
 import org.fanchuo.avroexcel.core.encoder.GenericRecordConsumer;
 import org.fanchuo.avroexcel.core.encoder.IEncoderBuilder;
 
@@ -16,12 +16,13 @@ public class Convertion {
       InputStream inputStream,
       OutputStream outputStream,
       IDecoderBuilder decoderBuilder,
-      IEncoderBuilder encoderBuilder)
-      throws IOException, DecoderSchemaException {
+      IEncoderBuilder encoderBuilder,
+      Consumer<ErrorMessage> errorMessageConsumer)
+      throws IOException {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputStream);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputStream)) {
-      convert(recordIterator, recordConsumer);
+      convert(recordIterator, recordConsumer, errorMessageConsumer);
     }
   }
 
@@ -29,12 +30,13 @@ public class Convertion {
       InputStream inputStream,
       Path outputFile,
       IDecoderBuilder decoderBuilder,
-      IEncoderBuilder encoderBuilder)
-      throws IOException, DecoderSchemaException {
+      IEncoderBuilder encoderBuilder,
+      Consumer<ErrorMessage> errorMessageConsumer)
+      throws IOException {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputStream);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputFile)) {
-      convert(recordIterator, recordConsumer);
+      convert(recordIterator, recordConsumer, errorMessageConsumer);
     }
   }
 
@@ -42,12 +44,13 @@ public class Convertion {
       Path inputFile,
       OutputStream outputStream,
       IDecoderBuilder decoderBuilder,
-      IEncoderBuilder encoderBuilder)
-      throws IOException, DecoderSchemaException {
+      IEncoderBuilder encoderBuilder,
+      Consumer<ErrorMessage> errorMessageConsumer)
+      throws IOException {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputFile);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputStream)) {
-      convert(recordIterator, recordConsumer);
+      convert(recordIterator, recordConsumer, errorMessageConsumer);
     }
   }
 
@@ -55,21 +58,32 @@ public class Convertion {
       Path inputFile,
       Path outputFile,
       IDecoderBuilder decoderBuilder,
-      IEncoderBuilder encoderBuilder)
-      throws IOException, DecoderSchemaException {
+      IEncoderBuilder encoderBuilder,
+      Consumer<ErrorMessage> errorMessageConsumer)
+      throws IOException {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputFile);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputFile)) {
-      convert(recordIterator, recordConsumer);
+      convert(recordIterator, recordConsumer, errorMessageConsumer);
     }
   }
 
   private static void convert(
-      GenericRecordIterator recordIterator, GenericRecordConsumer recordConsumer)
-      throws DecoderSchemaException, IOException {
-    GenericRecord record;
+      GenericRecordIterator recordIterator,
+      GenericRecordConsumer recordConsumer,
+      Consumer<ErrorMessage> errorMessageConsumer)
+      throws IOException {
+    ValidatedGenericRecord record;
     while ((record = recordIterator.readRecord()) != null) {
-      recordConsumer.writeRecord(record);
+      if (record.isValid()) {
+        recordConsumer.writeRecord(record.getGenericRecord());
+      } else {
+        if (errorMessageConsumer == null) {
+          System.err.println(ErrorMessageDumper.dump(record.getErrorMessage()));
+        } else {
+          errorMessageConsumer.accept(record.getErrorMessage());
+        }
+      }
     }
   }
 }
