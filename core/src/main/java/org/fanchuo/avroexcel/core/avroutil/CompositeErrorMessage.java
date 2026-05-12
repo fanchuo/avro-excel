@@ -3,7 +3,7 @@ package org.fanchuo.avroexcel.core.avroutil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompositeErrorMessage implements ErrorMessage {
+public class CompositeErrorMessage extends ErrorMessage {
   private final List<ErrorMessage> subMessages = new ArrayList<>();
 
   public void add(ErrorMessage errorMessage) {

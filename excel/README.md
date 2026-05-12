@@ -7,7 +7,7 @@ Easily transform your data from Avro to Excel format. The library handles the cr
 
 **Example:**
 ```java
-import org.fanchuo.avroexcel.core.avroutil.Convertion;
+import org.fanchuo.avroexcel.core.avroutil.Conversion;
 import org.fanchuo.avroexcel.core.avroutil.DefaultGenericDataConf;
 import org.fanchuo.avroexcel.core.decoder.AvroDecoderBuilder;
 import org.fanchuo.avroexcel.excel.converters.DefaultConverters;
@@ -35,7 +35,7 @@ Convert an Excel file to an Avro file based on a predefined Avro schema. This is
 
 **Example:**
 ```java
-import org.fanchuo.avroexcel.core.avroutil.Convertion;
+import org.fanchuo.avroexcel.core.avroutil.Conversion;
 import org.fanchuo.avroexcel.core.avroutil.DefaultGenericDataConf;
 import org.fanchuo.avroexcel.core.encoder.AvroEncoderBuilder;
 import org.fanchuo.avroexcel.excel.converters.DefaultConverters;
@@ -65,7 +65,7 @@ The most powerful feature of this module is the validation of an Excel file's co
 
 **Error detection example:**
 ```java
-import org.fanchuo.avroexcel.core.avroutil.Convertion;
+import org.fanchuo.avroexcel.core.avroutil.Conversion;
 import org.fanchuo.avroexcel.core.avroutil.DefaultGenericDataConf;
 import org.fanchuo.avroexcel.core.decoder.DecoderSchemaException;
 import org.fanchuo.avroexcel.core.encoder.AvroEncoderBuilder;

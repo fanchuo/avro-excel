@@ -27,7 +27,7 @@ public class ParquetReader implements GenericRecordIterator {
     if (lastRead == null) return null;
     GenericRecord rec = this.lastRead;
     this.lastRead = this.parquetReader.read();
-    return new ValidatedGenericRecord(rec);
+    return new ValidatedGenericRecord("", rec);
   }
 
   @Override

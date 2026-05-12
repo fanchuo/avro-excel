@@ -20,7 +20,7 @@ public class AvroReader implements GenericRecordIterator {
   @Override
   public ValidatedGenericRecord readRecord() {
     Iterator<GenericRecord> it = this.dataFileStream.iterator();
-    if (it.hasNext()) return new ValidatedGenericRecord(it.next());
+    if (it.hasNext()) return new ValidatedGenericRecord("", it.next());
     return null;
   }
 

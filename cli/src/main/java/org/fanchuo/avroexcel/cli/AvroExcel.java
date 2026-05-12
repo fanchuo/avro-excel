@@ -7,7 +7,7 @@ import java.util.ServiceLoader;
 import java.util.concurrent.Callable;
 import org.apache.avro.Schema;
 import org.fanchuo.avroexcel.core.api.CodecService;
-import org.fanchuo.avroexcel.core.avroutil.Convertion;
+import org.fanchuo.avroexcel.core.avroutil.Conversion;
 import org.fanchuo.avroexcel.core.avroutil.DefaultGenericDataConf;
 import org.fanchuo.avroexcel.core.avroutil.IGenericDataConf;
 import org.fanchuo.avroexcel.core.decoder.IDecoderBuilder;
@@ -106,8 +106,8 @@ public class AvroExcel implements Callable<Void> {
       CodecService codec = codecs.get(this.outputEncoding);
       encoderBuilder = codec.makeEncoder(genericDataConf);
     }
-    Convertion.convert(
-        this.inputFile.toPath(), this.outputFile.toPath(), decoderBuilder, encoderBuilder, null);
+    new Conversion()
+        .convert(this.inputFile.toPath(), this.outputFile.toPath(), decoderBuilder, encoderBuilder);
     return null;
   }
 }

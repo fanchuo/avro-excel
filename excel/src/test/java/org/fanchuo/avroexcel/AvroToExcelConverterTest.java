@@ -24,9 +24,8 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.util.TimePeriod;
 import org.apache.commons.io.IOUtils;
-import org.fanchuo.avroexcel.core.avroutil.Convertion;
+import org.fanchuo.avroexcel.core.avroutil.Conversion;
 import org.fanchuo.avroexcel.core.avroutil.DefaultGenericDataConf;
-import org.fanchuo.avroexcel.core.avroutil.ErrorMessageDumper;
 import org.fanchuo.avroexcel.core.avroutil.IGenericDataConf;
 import org.fanchuo.avroexcel.core.decoder.AvroDecoderBuilder;
 import org.fanchuo.avroexcel.core.encoder.AvroEncoderBuilder;
@@ -69,12 +68,12 @@ class AvroToExcelConverterTest {
 
     File excelFile = TEST_OUTPUT_DIR.resolve("users.xlsx").toFile();
 
-    Convertion.convert(
-        avroFile.toPath(),
-        excelFile.toPath(),
-        new AvroDecoderBuilder(genericDataConf),
-        new ExcelEncoderBuilder("Avro Data", 1, 2, converters),
-        null);
+    new Conversion()
+        .convert(
+            avroFile.toPath(),
+            excelFile.toPath(),
+            new AvroDecoderBuilder(genericDataConf),
+            new ExcelEncoderBuilder("Avro Data", 1, 2, converters));
 
     assertTrue(excelFile.exists());
     assertTrue(excelFile.length() > 0);
@@ -90,12 +89,12 @@ class AvroToExcelConverterTest {
     }
     Assertions.assertLinesMatch(Arrays.asList(sw.toString().split("\n")), dump);
     File backAvroFile = TEST_OUTPUT_DIR.resolve("back_users.avro").toFile();
-    Convertion.convert(
-        excelFile.toPath(),
-        backAvroFile.toPath(),
-        new ExcelDecoderBuilder(converters, "Avro Data", schema, 1, 2),
-        new AvroEncoderBuilder(genericDataConf),
-        null);
+    new Conversion()
+        .convert(
+            excelFile.toPath(),
+            backAvroFile.toPath(),
+            new ExcelDecoderBuilder(converters, "Avro Data", schema, 1, 2),
+            new AvroEncoderBuilder(genericDataConf));
     List<String> dump2 = AvroDescriptor.convert(backAvroFile, genericData);
     System.out.println(String.join("\n", dump2));
     StringWriter sw2 = new StringWriter();
@@ -113,12 +112,12 @@ class AvroToExcelConverterTest {
     }
     File temp = File.createTempFile("test", ".avro");
     temp.deleteOnExit();
-    Convertion.convert(
-        excelFile.toPath(),
-        temp.toPath(),
-        new ExcelDecoderBuilder(converters, "Avro Data", inferedSchema, 1, 2),
-        new AvroEncoderBuilder(genericDataConf),
-        null);
+    new Conversion()
+        .convert(
+            excelFile.toPath(),
+            temp.toPath(),
+            new ExcelDecoderBuilder(converters, "Avro Data", inferedSchema, 1, 2),
+            new AvroEncoderBuilder(genericDataConf));
   }
 
   @Test
@@ -142,15 +141,13 @@ class AvroToExcelConverterTest {
                 new Schema.Field("field_time", datetime)));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       List<String> errors = new ArrayList<>();
-      Convertion.convert(
-          is,
-          baos,
-          new ExcelDecoderBuilder(converters, "Test1", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf),
-          x -> {
-            String msg = ErrorMessageDumper.dump(x);
-            errors.add(msg);
-          });
+      new Conversion()
+          .onErrors(x -> errors.add(x.toString()))
+          .convert(
+              is,
+              baos,
+              new ExcelDecoderBuilder(converters, "Test1", schema, 0, 0),
+              new AvroEncoderBuilder(genericDataConf));
       assertEquals(
           "Caused by:\n"
               + "  [A4] Cannot match schema RECORD test [field_txt, field_num, field_bool, field_date, field_time]\n"
@@ -176,15 +173,13 @@ class AvroToExcelConverterTest {
                 new Schema.Field("field_bool", Schema.create(Schema.Type.BOOLEAN))));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       List<String> errors = new ArrayList<>();
-      Convertion.convert(
-          is,
-          baos,
-          new ExcelDecoderBuilder(converters, "Test1", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf),
-          x -> {
-            String msg = ErrorMessageDumper.dump(x);
-            errors.add(msg);
-          });
+      new Conversion()
+          .onErrors(x -> errors.add(x.toString()))
+          .convert(
+              is,
+              baos,
+              new ExcelDecoderBuilder(converters, "Test1", schema, 0, 0),
+              new AvroEncoderBuilder(genericDataConf));
       assertEquals(
           "Caused by:\n"
               + "  [A2] Cannot match schema RECORD test [field_txt, field_num, field_bool]\n"
@@ -224,15 +219,13 @@ class AvroToExcelConverterTest {
                 new Schema.Field("b", unionB)));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       List<String> errors = new ArrayList<>();
-      Convertion.convert(
-          is,
-          baos,
-          new ExcelDecoderBuilder(converters, "Test2", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf),
-          x -> {
-            String msg = ErrorMessageDumper.dump(x);
-            errors.add(msg);
-          });
+      new Conversion()
+          .onErrors(x -> errors.add(x.toString()))
+          .convert(
+              is,
+              baos,
+              new ExcelDecoderBuilder(converters, "Test2", schema, 0, 0),
+              new AvroEncoderBuilder(genericDataConf));
       assertEquals(
           "Caused by:\n"
               + "  [A3] Cannot match schema RECORD test [a, b]\n"
@@ -252,15 +245,13 @@ class AvroToExcelConverterTest {
             "test", null, null, false, Collections.singletonList(new Schema.Field("a", enumA)));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       List<String> errors = new ArrayList<>();
-      Convertion.convert(
-          is,
-          baos,
-          new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf),
-          x -> {
-            String msg = ErrorMessageDumper.dump(x);
-            errors.add(msg);
-          });
+      new Conversion()
+          .onErrors(x -> errors.add(x.toString()))
+          .convert(
+              is,
+              baos,
+              new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
+              new AvroEncoderBuilder(genericDataConf));
       assertEquals(
           "Caused by:\n"
               + "  [A2] Cannot match schema RECORD test [a]\n"
@@ -304,12 +295,12 @@ class AvroToExcelConverterTest {
     createSampleAvroFile2(avroFile, schema);
 
     File excelFile = TEST_OUTPUT_DIR.resolve("items.xlsx").toFile();
-    Convertion.convert(
-        avroFile.toPath(),
-        excelFile.toPath(),
-        new AvroDecoderBuilder(genericDataConf),
-        new ExcelEncoderBuilder("A", 0, 0, converters),
-        null);
+    new Conversion()
+        .convert(
+            avroFile.toPath(),
+            excelFile.toPath(),
+            new AvroDecoderBuilder(genericDataConf),
+            new ExcelEncoderBuilder("A", 0, 0, converters));
 
     assertTrue(excelFile.exists());
     assertTrue(excelFile.length() > 0);
@@ -325,12 +316,12 @@ class AvroToExcelConverterTest {
     }
     Assertions.assertLinesMatch(Arrays.asList(sw.toString().split("\n")), dump);
     File backAvroFile = TEST_OUTPUT_DIR.resolve("back_items.avro").toFile();
-    Convertion.convert(
-        excelFile.toPath(),
-        backAvroFile.toPath(),
-        new ExcelDecoderBuilder(converters, "A", schema, 0, 0),
-        new AvroEncoderBuilder(genericDataConf),
-        null);
+    new Conversion()
+        .convert(
+            excelFile.toPath(),
+            backAvroFile.toPath(),
+            new ExcelDecoderBuilder(converters, "A", schema, 0, 0),
+            new AvroEncoderBuilder(genericDataConf));
     List<String> dump2 = AvroDescriptor.convert(backAvroFile, genericData);
     System.out.println(String.join("\n", dump2));
     StringWriter sw2 = new StringWriter();
@@ -358,15 +349,13 @@ class AvroToExcelConverterTest {
                 new Schema.Field("b", Schema.createUnion(enumA, Schema.create(Schema.Type.NULL)))));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       List<String> errors = new ArrayList<>();
-      Convertion.convert(
-          is,
-          baos,
-          new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf),
-          x -> {
-            String msg = ErrorMessageDumper.dump(x);
-            errors.add(msg);
-          });
+      new Conversion()
+          .onErrors(x -> errors.add(x.toString()))
+          .convert(
+              is,
+              baos,
+              new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
+              new AvroEncoderBuilder(genericDataConf));
       assertEquals(
           "Caused by:\n"
               + "  [A3] Cannot match schema RECORD test [a, b]\n"
@@ -399,14 +388,13 @@ class AvroToExcelConverterTest {
                         Schema.create(Schema.Type.STRING), Schema.create(Schema.Type.NULL)))));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       List<String> errors = new ArrayList<>();
-      Convertion.convert(
-          is,
-          baos,
-          new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf),
-          x -> {
-            errors.add(ErrorMessageDumper.dump(x));
-          });
+      new Conversion()
+          .onErrors(x -> errors.add(x.toString()))
+          .convert(
+              is,
+              baos,
+              new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
+              new AvroEncoderBuilder(genericDataConf));
       assertTrue(errors.isEmpty());
     }
   }
@@ -430,15 +418,13 @@ class AvroToExcelConverterTest {
                 new Schema.Field("c", Schema.create(Schema.Type.STRING))));
     try (InputStream is = getClass().getResourceAsStream("/tests.xlsx")) {
       List<String> errors = new ArrayList<>();
-      Convertion.convert(
-          is,
-          baos,
-          new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
-          new AvroEncoderBuilder(genericDataConf),
-          x -> {
-            String msg = ErrorMessageDumper.dump(x);
-            errors.add(msg);
-          });
+      new Conversion()
+          .onErrors(x -> errors.add(x.toString()))
+          .convert(
+              is,
+              baos,
+              new ExcelDecoderBuilder(converters, "Test3", schema, 0, 0),
+              new AvroEncoderBuilder(genericDataConf));
       assertEquals(
           "Caused by:\n"
               + "  [A2] Cannot match schema RECORD test [a, b, c]\n"

@@ -2,87 +2,104 @@ package org.fanchuo.avroexcel.core.avroutil;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.function.Consumer;
+import org.apache.avro.generic.GenericRecord;
 import org.fanchuo.avroexcel.core.decoder.GenericRecordIterator;
 import org.fanchuo.avroexcel.core.decoder.IDecoderBuilder;
 import org.fanchuo.avroexcel.core.decoder.ValidatedGenericRecord;
 import org.fanchuo.avroexcel.core.encoder.GenericRecordConsumer;
 import org.fanchuo.avroexcel.core.encoder.IEncoderBuilder;
 
-public class Convertion {
-  private Convertion() {}
+public final class Conversion implements ValidationHandler, ErrorHandler {
+  private ValidationHandler validationHandler = this;
+  private ErrorHandler errorHandler = this;
 
-  public static void convert(
+  @Override
+  public ErrorMessage validate(Object address, GenericRecord genericRecord) {
+    return null;
+  }
+
+  @Override
+  public void handle(ErrorMessage errorMessage) {
+    System.err.println(errorMessage.toString());
+  }
+
+  public Conversion onErrors(ErrorHandler errorHandler) {
+    this.errorHandler = errorHandler;
+    return this;
+  }
+
+  public Conversion withCustomCheck(ValidationHandler validationHandler) {
+    this.validationHandler = validationHandler;
+    return this;
+  }
+
+  public void convert(
       InputStream inputStream,
       OutputStream outputStream,
       IDecoderBuilder decoderBuilder,
-      IEncoderBuilder encoderBuilder,
-      Consumer<ErrorMessage> errorMessageConsumer)
+      IEncoderBuilder encoderBuilder)
       throws IOException {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputStream);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputStream)) {
-      convert(recordIterator, recordConsumer, errorMessageConsumer);
+      convert(recordIterator, recordConsumer);
     }
   }
 
-  public static void convert(
+  public void convert(
       InputStream inputStream,
       Path outputFile,
       IDecoderBuilder decoderBuilder,
-      IEncoderBuilder encoderBuilder,
-      Consumer<ErrorMessage> errorMessageConsumer)
+      IEncoderBuilder encoderBuilder)
       throws IOException {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputStream);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputFile)) {
-      convert(recordIterator, recordConsumer, errorMessageConsumer);
+      convert(recordIterator, recordConsumer);
     }
   }
 
-  public static void convert(
+  public void convert(
       Path inputFile,
       OutputStream outputStream,
       IDecoderBuilder decoderBuilder,
-      IEncoderBuilder encoderBuilder,
-      Consumer<ErrorMessage> errorMessageConsumer)
+      IEncoderBuilder encoderBuilder)
       throws IOException {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputFile);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputStream)) {
-      convert(recordIterator, recordConsumer, errorMessageConsumer);
+      convert(recordIterator, recordConsumer);
     }
   }
 
-  public static void convert(
+  public void convert(
       Path inputFile,
       Path outputFile,
       IDecoderBuilder decoderBuilder,
-      IEncoderBuilder encoderBuilder,
-      Consumer<ErrorMessage> errorMessageConsumer)
+      IEncoderBuilder encoderBuilder)
       throws IOException {
     try (GenericRecordIterator recordIterator = decoderBuilder.build(inputFile);
         GenericRecordConsumer recordConsumer =
             encoderBuilder.build(recordIterator.getSchema(), outputFile)) {
-      convert(recordIterator, recordConsumer, errorMessageConsumer);
+      convert(recordIterator, recordConsumer);
     }
   }
 
-  private static void convert(
-      GenericRecordIterator recordIterator,
-      GenericRecordConsumer recordConsumer,
-      Consumer<ErrorMessage> errorMessageConsumer)
+  private void convert(GenericRecordIterator recordIterator, GenericRecordConsumer recordConsumer)
       throws IOException {
     ValidatedGenericRecord record;
     while ((record = recordIterator.readRecord()) != null) {
       if (record.isValid()) {
+        ErrorMessage msg =
+            validationHandler.validate(record.getAddress(), record.getGenericRecord());
+        if (msg != null) {
+          record = new ValidatedGenericRecord(record.getAddress(), msg);
+        }
+      }
+      if (record.isValid()) {
         recordConsumer.writeRecord(record.getGenericRecord());
       } else {
-        if (errorMessageConsumer == null) {
-          System.err.println(ErrorMessageDumper.dump(record.getErrorMessage()));
-        } else {
-          errorMessageConsumer.accept(record.getErrorMessage());
-        }
+        errorHandler.handle(record.getErrorMessage());
       }
     }
   }

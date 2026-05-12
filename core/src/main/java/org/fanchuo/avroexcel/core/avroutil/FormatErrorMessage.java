@@ -2,7 +2,7 @@ package org.fanchuo.avroexcel.core.avroutil;
 
 import java.util.Formatter;
 
-public class FormatErrorMessage implements ErrorMessage {
+public class FormatErrorMessage extends ErrorMessage {
   private final String fmtString;
   private final Object address;
   private final Object[] vargs;

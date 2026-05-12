@@ -46,15 +46,16 @@ public class ExcelReader implements GenericRecordIterator {
 
   public ValidatedGenericRecord readRecord() {
     if (this.sheet.emptyLine(this.col, this.row, this.headerInfo)) return null;
+    CellAddress address = new CellAddress(this.row, this.col);
     ExcelRecord excelRecords =
         visitObject(this.col, this.row, Collections.singletonList(this.schema), this.headerInfo);
     this.row += excelRecords.recordGeometry.rowSpan;
     if (excelRecords.candidates.isEmpty()) {
       ErrorMessage errorMessage = excelRecords.failures.get(this.schema);
-      return new ValidatedGenericRecord(errorMessage);
+      return new ValidatedGenericRecord(address, errorMessage);
     }
     GenericRecord toReturn = (GenericRecord) excelRecords.candidates.values().iterator().next();
-    return new ValidatedGenericRecord(toReturn);
+    return new ValidatedGenericRecord(address, toReturn);
   }
 
   private ExcelRecord visitScalar(int col, int row, List<Schema> schemas) {
