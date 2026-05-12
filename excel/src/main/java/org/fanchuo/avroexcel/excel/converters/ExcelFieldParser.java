@@ -84,7 +84,7 @@ public class ExcelFieldParser implements IExcelFieldParser {
     }
   }
 
-  private static final Set<String> LOCALDATE_LOGICAL_TYPES =
+  private static final Set<String> LOCAL_DATE_LOGICAL_TYPES =
       new CopyOnWriteArraySet<>(
           Arrays.asList(
               "date",
@@ -105,7 +105,7 @@ public class ExcelFieldParser implements IExcelFieldParser {
     public ParserResult analyze(Schema schema, Cell cell, CellAddress address) {
       String logicalType =
           schema.getLogicalType() == null ? null : schema.getLogicalType().getName();
-      if (logicalType != null && LOCALDATE_LOGICAL_TYPES.contains(logicalType)) {
+      if (logicalType != null && LOCAL_DATE_LOGICAL_TYPES.contains(logicalType)) {
         if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
           if ("date".equals(logicalType))
             return new ParserResult(null, cell.getLocalDateTimeCellValue().toLocalDate());

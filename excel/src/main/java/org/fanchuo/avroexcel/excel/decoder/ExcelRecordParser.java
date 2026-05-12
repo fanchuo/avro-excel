@@ -30,7 +30,6 @@ public class ExcelRecordParser {
       String fieldName = field.name();
       Schema fieldSchema = field.schema();
       if (subRecords.containsKey(fieldName)) {
-        // 1. je trouve une valeur correspondante, le schema doit match
         ExcelRecord subRecord = subRecords.remove(fieldName);
         if (subRecord.candidates.containsKey(fieldSchema)) {
           payload.put(fieldName, subRecord.candidates.get(fieldSchema));
@@ -42,7 +41,6 @@ public class ExcelRecordParser {
           return new ParserResult(compositeErrorMessage, null);
         }
       } else {
-        // 2. je ne trouve pas de valeur correspondante, le schema doit être nullable
         CollectionTypes collectionTypes = ParserTools.collectTypes(fieldSchema);
         if (collectionTypes.nullable) payload.put(fieldName, null);
         else if (collectionTypes.listable) payload.put(fieldName, Collections.emptyList());

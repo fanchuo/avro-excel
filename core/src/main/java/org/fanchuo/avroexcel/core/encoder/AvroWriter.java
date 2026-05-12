@@ -11,7 +11,7 @@ import org.apache.avro.io.DatumWriter;
 
 public class AvroWriter implements GenericRecordConsumer {
 
-  private DataFileWriter<GenericRecord> dataFileWriter;
+  private final DataFileWriter<GenericRecord> dataFileWriter;
 
   public AvroWriter(Schema schema, GenericData genericData, OutputStream avroOutputStream)
       throws IOException {

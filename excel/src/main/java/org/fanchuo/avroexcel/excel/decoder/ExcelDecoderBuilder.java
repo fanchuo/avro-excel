@@ -28,10 +28,6 @@ public class ExcelDecoderBuilder implements IDecoderBuilder {
     this.row = row;
   }
 
-  public ExcelDecoderBuilder(IConverters converters, Schema schema) {
-    this(converters, null, schema, 0, 0);
-  }
-
   @Override
   public GenericRecordIterator build(InputStream inputStream) throws IOException {
     ExcelSheetReader excelSheetReader = ExcelSheetReader.loadSheet(inputStream, this.sheetName);

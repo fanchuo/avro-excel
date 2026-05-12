@@ -38,25 +38,25 @@ public class RecordGeometryAvroReader {
 
   public static RecordGeometry visitList(List<?> list) {
     List<RecordGeometry> subLists = new ArrayList<>();
-    int cumul = 0;
+    int rowCount = 0;
     for (Object value : list) {
       RecordGeometry subList = visitObject(value);
-      cumul += subList.rowSpan;
+      rowCount += subList.rowSpan;
       subLists.add(subList);
     }
-    if (cumul == 0) return RecordGeometry.ATOM;
-    return new RecordGeometry(cumul, null, subLists);
+    if (rowCount == 0) return RecordGeometry.ATOM;
+    return new RecordGeometry(rowCount, null, subLists);
   }
 
   public static RecordGeometry visitMap(Map<?, ?> map) {
     List<RecordGeometry> subLists = new ArrayList<>();
-    int cumul = 0;
+    int rowCount = 0;
     for (Object value : map.values()) {
       RecordGeometry subList = visitObject(value);
-      cumul += subList.rowSpan;
+      rowCount += subList.rowSpan;
       subLists.add(subList);
     }
-    if (cumul == 0) return RecordGeometry.ATOM;
-    return new RecordGeometry(cumul, null, subLists);
+    if (rowCount == 0) return RecordGeometry.ATOM;
+    return new RecordGeometry(rowCount, null, subLists);
   }
 }

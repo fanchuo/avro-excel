@@ -9,18 +9,18 @@ import org.fanchuo.avroexcel.core.encoder.IEncoderBuilder;
 import org.fanchuo.avroexcel.excel.converters.IConverters;
 
 public class ExcelEncoderBuilder implements IEncoderBuilder {
-  private final String sheetname;
+  private final String sheetName;
   private final int col;
   private final int row;
   private final IConverters converters;
 
-  private static String makeSheetname(String sheetName) {
+  private static String makeSheetName(String sheetName) {
     if (sheetName == null) return "tab";
     return sheetName;
   }
 
-  public ExcelEncoderBuilder(String sheetname, int col, int row, IConverters converters) {
-    this.sheetname = makeSheetname(sheetname);
+  public ExcelEncoderBuilder(String sheetName, int col, int row, IConverters converters) {
+    this.sheetName = makeSheetName(sheetName);
     this.col = col;
     this.row = row;
     this.converters = converters;
@@ -31,7 +31,7 @@ public class ExcelEncoderBuilder implements IEncoderBuilder {
     return new ExcelWriter(
         schema,
         outputStream,
-        this.sheetname,
+        this.sheetName,
         this.converters.getExcelFieldFormater(),
         this.col,
         this.row);
