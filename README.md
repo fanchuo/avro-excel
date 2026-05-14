@@ -10,7 +10,7 @@ edited using Excel.
 So picking CSV means:
 
 * Your data is well represented in tabular format
-* It holds in Excel's 1 048 576 lines limit
+* It holds in Excel's 1 048 576 lines limit. You might go beyond, but it won't be editable in Excel.
 * It is likely to be handled through Excel by human operators
 
 However, there would be several pros using xlsx format instead of CSV:

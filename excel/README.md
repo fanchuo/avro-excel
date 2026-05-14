@@ -121,23 +121,7 @@ Schema inferredSchema = ExcelInferSchema.inferSchema(excelStream, "Sheet1", 1, 2
 System.out.println(inferredSchema.toString(true)); // Print the inferred schema
 ```
 
-### 5. Command Line Interface (CLI)
-
-The library also provides a command-line interface for performing conversions directly from the terminal. The CLI tool is packaged in the `avro-excel-cli.jar`.
-
-**Examples:**
-```bash
-# Convert Excel to Avro
-java -jar avro-excel-cli.jar -i input.xlsx -o output.avro -t Sheet1 -e EXCEL -f AVRO --schema user.avsc
-
-# Convert Avro to Excel
-java -jar avro-excel-cli.jar -i input.avro -o output.xlsx -t Sheet1 -e AVRO -f EXCEL
-
-# Infer schema from Excel and convert to Avro
-java -jar avro-excel-cli.jar -i input.xlsx -o output.avro -t Sheet1 -e EXCEL -f AVRO --infer-schema
-```
-
-### 6. Avro Logical Types Support
+### 5. Avro Logical Types Support
 
 The library provides robust support for various Avro logical types, ensuring accurate data conversion between Avro and Excel formats. This includes handling of complex types like UUIDs, Decimals, Dates, and Durations.
 
