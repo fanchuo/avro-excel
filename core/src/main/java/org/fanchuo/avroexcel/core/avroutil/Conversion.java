@@ -1,7 +1,10 @@
 package org.fanchuo.avroexcel.core.avroutil;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import org.apache.avro.generic.GenericRecord;
 import org.fanchuo.avroexcel.core.decoder.GenericRecordIterator;
 import org.fanchuo.avroexcel.core.decoder.IDecoderBuilder;
@@ -9,9 +12,9 @@ import org.fanchuo.avroexcel.core.decoder.ValidatedGenericRecord;
 import org.fanchuo.avroexcel.core.encoder.GenericRecordConsumer;
 import org.fanchuo.avroexcel.core.encoder.IEncoderBuilder;
 
-public final class Conversion implements ValidationHandler, ErrorHandler {
+public final class Conversion implements ValidationHandler, Consumer<ErrorMessage> {
   private ValidationHandler validationHandler = this;
-  private ErrorHandler errorHandler = this;
+  private Consumer<ErrorMessage> errorHandler = this;
 
   @Override
   public ErrorMessage validate(Object address, GenericRecord genericRecord) {
@@ -19,11 +22,11 @@ public final class Conversion implements ValidationHandler, ErrorHandler {
   }
 
   @Override
-  public void handle(ErrorMessage errorMessage) {
+  public void accept(ErrorMessage errorMessage) {
     System.err.println(errorMessage.toString());
   }
 
-  public Conversion onErrors(ErrorHandler errorHandler) {
+  public Conversion onErrors(Consumer<ErrorMessage> errorHandler) {
     this.errorHandler = errorHandler;
     return this;
   }
@@ -97,9 +100,10 @@ public final class Conversion implements ValidationHandler, ErrorHandler {
         }
       }
       if (record.isValid()) {
-        recordConsumer.writeRecord(record.getGenericRecord());
+        final GenericRecord r = record.getGenericRecord();
+        recordConsumer.writeRecord(r);
       } else {
-        errorHandler.handle(record.getErrorMessage());
+        errorHandler.accept(record.getErrorMessage());
       }
     }
   }

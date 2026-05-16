@@ -21,7 +21,7 @@ File avroFile = new File("users.avro");
 File excelFile = new File("users.xlsx");
 
 // Assuming you have a DefaultGenericDataConf instance and DefaultConverters instance
-Convertion.convert(
+new Convertion().convert(
     avroFile.toPath(),
     excelFile.toPath(),
     new AvroDecoderBuilder(new DefaultGenericDataConf()),
@@ -51,7 +51,7 @@ File avroFile = new File("users.avro");
 Schema schema = new Schema.Parser().parse(new File("user.avsc")); // Your Avro schema file
 
 // Assuming you have a DefaultGenericDataConf instance and DefaultConverters instance
-Convertion.convert(
+new Convertion().convert(
     excelFile.toPath(),
     avroFile.toPath(),
     new ExcelDecoderBuilder(new DefaultConverters(), "Avro Data", schema, 1, 2),
@@ -84,22 +84,20 @@ Schema schema = new Schema.Parser().parse("{\"type\": \"record\", \"name\": \"te
 InputStream excelInputStream = new FileInputStream("invalid_data.xlsx"); // An Excel file with invalid data
 OutputStream outputStream = new ByteArrayOutputStream(); // Or any other output stream
 
-try {
-    Convertion.convert(
-        excelInputStream,
-        outputStream,
-        new ExcelDecoderBuilder(new DefaultConverters(), "Sheet1", schema, 0, 0),
-        new AvroEncoderBuilder(new DefaultGenericDataConf())
-    );
-} catch (DecoderSchemaException e) {
-    System.out.println(e.getMessage());
+new Convertion().onErrors(x -> {
+    System.out.println(x);
     // Output example (similar to the test case):
     // Caused by:
     //   [A4] Cannot match schema RECORD test [...]
     //   Caused by:
     //     [A4] Failed to match record for field field_num
     //     [B4] Cell type 'STRING' is not NUMERIC
-}
+}).convert(
+    excelInputStream,
+    outputStream,
+    new ExcelDecoderBuilder(new DefaultConverters(), "Sheet1", schema, 0, 0),
+    new AvroEncoderBuilder(new DefaultGenericDataConf())
+);
 ```
 
 ### 4. Avro Schema Inference
